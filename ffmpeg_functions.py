@@ -84,10 +84,9 @@ def extract_batch_frames(video_dir, sample_data, out_dir='', channels=[2]):
 
 
 if __name__ == "__main__":
-	video_dir = 'C:\\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data\DATA_20200423153202169'
-	excel = extract_excel_data('C:\\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data',
-							   classes='Field Joint')
+	current_dir = os.getcwd()
+	video_dir = os.path.join(current_dir, '\\data\\DATA_20200423153202169')
+	excel = extract_excel_data((current_dir + '\\data'), classes='Field Joint')
 
 	sample_data = extract_video_events(excel, video_dir)
-	extract_batch_frames(video_dir, sample_data, out_dir='C:\\Users\MTN\Documents\Survey_anomaly_detection\pycharm'
-														 '\Anomaly_detection\data\Samples', channels=[2])
+	extract_batch_frames(video_dir, sample_data, out_dir=(current_dir + '\data\Samples'), channels=[2])
