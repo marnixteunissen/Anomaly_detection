@@ -42,7 +42,7 @@ def extract_frame(video_file, time_stamp, event_nr, code='FJOK', out_dir=''):
 		cmd = 'ffmpeg' + ' -y ' + '-i ' + infile + ' -ss ' + time + ' -frames:v 1 ' + outfile
 		print(cmd)
 		# pass command:
-		subprocess.Popen(cmd)
+		os.system(cmd)
 
 
 def extract_batch_frames(video_dir, sample_data, out_dir='', channels=[2]):
@@ -79,14 +79,19 @@ def extract_batch_frames(video_dir, sample_data, out_dir='', channels=[2]):
 		for (sample, code, time_stamp) in zip(sample_nrs, codes, time_stamps):
 			outfile = save_dir + '\\' + code + str(sample) + '.png'
 			cmd = 'ffmpeg' + ' -y ' + '-i ' + infile + ' -ss ' + time_stamp + ' -frames:v 1 ' + outfile
-			subprocess.Popen(cmd)
+			print(cmd)
+			subprocess.Popen(cmd, shell=True)
+
 		print('Keyframes are being extracted for file ', video_file)
 
 
 if __name__ == "__main__":
 	current_dir = os.getcwd()
-	video_dir = os.path.join(current_dir, '\\data\\DATA_20200423153202169')
+	print(current_dir)
+	video_dir = (current_dir + '\\data\\DATA_20200423153202169')
+	print(video_dir)
 	excel = extract_excel_data((current_dir + '\\data'), classes='Field Joint')
 
 	sample_data = extract_video_events(excel, video_dir)
+
 	extract_batch_frames(video_dir, sample_data, out_dir=(current_dir + '\data\Samples'), channels=[2])

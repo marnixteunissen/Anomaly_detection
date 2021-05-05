@@ -29,7 +29,7 @@ def extract_excel_data(project, classes='Field Joint'):
     return excel_data
 
 
-def extract_video_events(excel_data, video_folder, static_offset=timedelta(seconds=0)):
+def extract_video_events(excel_data, video_folder, static_offset=0.000):
     '''
     Extracts the timestamps with labels from the events sheet.
     :param excel_data:      Pandas DataFrame (not dict of DataFrames)
@@ -58,7 +58,6 @@ def extract_video_events(excel_data, video_folder, static_offset=timedelta(secon
     offset = timedelta(seconds=static_offset)
     timestamps['Video Stamp'] = timestamps['datetime'] - first_stamp + offset
     timestamps['Video Stamp (string)'] = timestamps['Video Stamp'].astype('string').str.split().str[-1]
-    print(timestamps)
     data_points = timestamps[['Video Stamp (string)', 'Secondary Code']]
 
     return data_points
