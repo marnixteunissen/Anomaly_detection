@@ -54,19 +54,28 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
     # for all events in excel_data:
     timestamps = excel_data[(first_stamp <= excel_data['datetime']) &
                             (excel_data['datetime'] <= last_stamp)][['datetime', 'Secondary Code']]
+
     # Calculating elapsed time in video
     offset = timedelta(seconds=static_offset)
-    timestamps['Video Stamp'] = timestamps['datetime'] - first_stamp + offset
-    timestamps['Video Stamp (string)'] = timestamps['Video Stamp'].astype('string').str.split().str[-1]
-    data_points = timestamps[['Video Stamp (string)', 'Secondary Code']]
+    timestamps['Video Stamp'] = (timestamps['datetime'] - first_stamp + offset)
+    print(type(timestamps['Video Stamp']))
+    timestamps['ms in video'] = (timestamps['Video Stamp'].dt.total_seconds() * 1000).astype('int')
+
+    data_points = timestamps[['Video Stamp', 'ms in video', 'Secondary Code']]
 
     return data_points
 
 
 if __name__ == "__main__":
-    excel = extract_excel_data('C:\\Users\\MTN\\Documents\\Survey_anomaly_detection\\pycharm\\Anomaly_detection\\data')
-    print(excel)
-    time_stamps = extract_video_events(excel, 'C:\\Users\\MTN\\Documents\\Survey_anomaly_detection\\'
-                                              'pycharm\\Anomaly_detection\\data\\DATA_20200423153202169', 1.992)
+    dir = os.getcwd()
+    print(dir)
+    excel = extract_excel_data(dir + r'\data\Troll')
+    time_stamps = extract_video_events(excel, dir + '\data\\Troll\\video\\DATA_20200423153202169', 1.992)
     print(time_stamps)
+    time_deltas = time_stamps["Video Stamp"]
+    print(time_deltas)
+    time_deltas = time_deltas.dt.total_seconds()*1000
+    print(time_deltas)
+
+
 

@@ -5,6 +5,8 @@ https://www.thewindowsclub.com/how-to-install-ffmpeg-on-windows-10#:~:text=Navig
 
 The file can be extracted to the same folder as the pycharm project is in. Important: adding ffmpeg to path.
 
+### 2. Install OpenCV
+following tutorial on: https://sourceforge.net/projects/opencvlibrary/files/
 
 
 #### extracting frames:
