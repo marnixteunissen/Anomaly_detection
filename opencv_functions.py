@@ -43,18 +43,19 @@ def extract_all_frames(video_dir, excel_in, out_dir, delay=0.000, channels=2, sh
     if not type(channels) == list:
         channels = [channels]
     video_files = file.get_video_file_names(video_dir, channels)
-
+    
     # open video files one by one:
-    for video_file in video_files:
+    for video_file, channel in zip(video_files, channels):
         print("Opening", os.path.join(video_dir, video_file))
         cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
-
+        channel_dir = save_dir + r'/Channel_' + str(channel)
+        
         for (time_stamp, code, sample_nr) in zip(time_stamps, codes, sample_nrs):
             cap.set(cv2.CAP_PROP_POS_MSEC, int(time_stamp))
             success, image = cap.read()
 
             if success:
-                save_path = os.path.join(save_dir, (str(sample_nr) + '_' + code + '.png'))
+                save_path = os.path.join(channel_dir, (str(sample_nr) + '_' + code + '.png'))
                 cv2.imwrite(save_path, image)
                 print('Image was saved to', save_path)
                 if show:
