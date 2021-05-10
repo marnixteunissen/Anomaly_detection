@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from datetime import datetime, timedelta
+import cv2
 
 
 def extract_excel_data(project, classes='Field Joint'):
@@ -20,7 +21,7 @@ def extract_excel_data(project, classes='Field Joint'):
             excel_file = os.path.join(project, file)
 
     # Select columns to import:
-    columns = ['Date', 'Time', 'KP(km)', 'KP meter', 'Primary Code', 'Secondary Code']
+    columns = ['Date', 'Time', 'KP(km)', 'Primary Code', 'Secondary Code']
     # Opening the Datasheet as DateFrame(s)
     excel_data = pd.read_excel(excel_file, sheet_name=classes, usecols=columns)
     # Add column with date and time concatenated:
@@ -48,7 +49,15 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 
     # Extract the timestamp of the start and end of the video from the filename:
     first_stamp = pd.to_datetime(time_string, format="%Y%m%d%H%M%S%f")
-    last_stamp = first_stamp + timedelta(minutes=30)
+
+    video_file = [x for x in os.listdir(video_folder) if x.endswith('.mp4')][0]
+
+    cap = cv2.VideoCapture(os.path.join(video_folder, video_file))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT);
+    total_sec = float(total_frames) / float(fps)
+    last_stamp = first_stamp + timedelta(seconds=total_sec)
+    print('first:', first_stamp, 'last:', last_stamp)
 
     # Create pandas DataFrame with DateTime and labels from Secondary Code
     # for all events in excel_data:
@@ -73,9 +82,9 @@ if __name__ == "__main__":
     time_stamps = extract_video_events(excel, dir + '\data\\Troll\\video\\DATA_20200423153202169', 1.992)
     print(time_stamps)
     time_deltas = time_stamps["Video Stamp"]
-    print(time_deltas)
+    print('time deltas:', time_deltas)
     time_deltas = time_deltas.dt.total_seconds()*1000
-    print(time_deltas)
+    print('milliseconds:', time_deltas)
 
 
 

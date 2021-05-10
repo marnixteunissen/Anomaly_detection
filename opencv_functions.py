@@ -36,28 +36,38 @@ def extract_all_frames(video_dir, excel_in, out_dir, delay=0.000, channels=2, sh
     elif os.path.exists(out_dir):
         save_dir = out_dir
     else:
-        raise FileNotFoundError('Directory ', out_dir, ' was not found, please use existing directory')
+        prompt = input(('Path does not exist, would you like to create' + out_dir + '? (y)/(n)'))
+        if prompt == 'y' or prompt == 'Y':
+            os.mkdir(out_dir)
+            save_dir = out_dir
+        else:
+            raise FileNotFoundError('Directory ', out_dir, ' was not found and not created, '
+                                                           'please use existing directory or create one')
     print("saving to:", save_dir)
 
     # Create list if channels is not a list
     if not type(channels) == list:
         channels = [channels]
+
     video_files = file.get_video_file_names(video_dir, channels)
     
     # open video files one by one:
     for video_file, channel in zip(video_files, channels):
         print("Opening", os.path.join(video_dir, video_file))
         cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
-        channel_dir = save_dir + r'/Channel_' + str(channel)
-        
+        channel_dir = save_dir + r'\Channel_' + str(channel)
+        if not os.path.exists(channel_dir):
+            os.mkdir(channel_dir)
+
         for (time_stamp, code, sample_nr) in zip(time_stamps, codes, sample_nrs):
             cap.set(cv2.CAP_PROP_POS_MSEC, int(time_stamp))
             success, image = cap.read()
 
             if success:
                 save_path = os.path.join(channel_dir, (str(sample_nr) + '_' + code + '.png'))
+                print('Saving image to', save_path)
                 cv2.imwrite(save_path, image)
-                print('Image was saved to', save_path)
+
                 if show:
                     cv2.imshow("saved image:", image)
                     cv2.waitKey()
@@ -98,14 +108,9 @@ if __name__ == "__main__":
     dir = os.getcwd()
     print("working directory: ", dir)
     video = (dir + r"\data\video\20200423213211791@MainDVR_Ch2.mp4")
-    print("path to video file:", video)
-    image3 = extract_frame(video, 500)
-    #cv2.imshow('mid frame', image3)
-    #cv2.waitKey(0)
+
     excel = excel_f.extract_excel_data(dir + r'\data\Troll', classes='Field Joint')
 
-    #data = excel_f.extract_video_events(excel, dir + r'\data\Troll\video\DATA_20200423153202169')
-    #print(data)
     extract_all_frames(dir + r'\data\Troll\video\DATA_20200423203210192', excel,
-                       dir + r'\data\samples', delay=-2.000, channels=[1, 2, 3])
+                       dir + r'\data\Samples', delay=-2.000, channels=[2])
 
