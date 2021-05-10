@@ -104,5 +104,5 @@ def create_dataset(project,
 
 
 if __name__ == "__main__":
-    create_dataset('LingShui', delay=2.000,
+    create_dataset('LingShui', delay=2.500,
                    root_dir=r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data')

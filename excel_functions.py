@@ -78,13 +78,10 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 if __name__ == "__main__":
     dir = os.getcwd()
     print(dir)
-    excel = extract_excel_data(dir + r'\data\Troll')
-    time_stamps = extract_video_events(excel, dir + '\data\\Troll\\video\\DATA_20200423153202169', 1.992)
+    excel = extract_excel_data(dir + r'\data\LingShui')
+    time_stamps = extract_video_events(excel, dir + r'\data\LingShui\Video\DATA_20200627074626222', -2.609)
     print(time_stamps)
-    time_deltas = time_stamps["Video Stamp"]
-    print('time deltas:', time_deltas)
-    time_deltas = time_deltas.dt.total_seconds()*1000
-    print('milliseconds:', time_deltas)
+
 
 
 

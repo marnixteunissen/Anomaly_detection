@@ -22,7 +22,7 @@ def extract_all_frames(video_dir, excel_in, out_dir, delay=0.000, channels=2, sh
     :return:
     """
     # Open excel data
-    excel_data = excel_f.extract_video_events(excel_in, video_dir, static_offset=delay)
+    excel_data = excel_f.extract_video_events(excel_in, video_dir, static_offset=-delay)
 
     # Create iterable lists for creating frames
     time_stamps = excel_data["ms in video"].tolist()
