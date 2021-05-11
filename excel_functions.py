@@ -57,7 +57,6 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT);
     total_sec = float(total_frames) / float(fps)
     last_stamp = first_stamp + timedelta(seconds=total_sec)
-    print('first:', first_stamp, 'last:', last_stamp)
 
     # Create pandas DataFrame with DateTime and labels from Secondary Code
     # for all events in excel_data:
@@ -67,7 +66,6 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
     # Calculating elapsed time in video
     offset = timedelta(seconds=static_offset)
     timestamps['Video Stamp'] = (timestamps['datetime'] - first_stamp + offset)
-    print(type(timestamps['Video Stamp']))
     timestamps['ms in video'] = (timestamps['Video Stamp'].dt.total_seconds() * 1000).astype('int')
 
     data_points = timestamps[['Video Stamp', 'ms in video', 'Secondary Code']]

@@ -2,7 +2,7 @@ from Anomaly_detection.file_functions import *
 from Anomaly_detection.excel_functions import *
 from Anomaly_detection.opencv_functions import *
 import os
-
+import argparse
 
 # steps:
 # Set root directory:
@@ -11,25 +11,22 @@ import os
 # Set location to store test and training data
 
 def create_dataset(project,
-                   channels = [2],
+                   channel_idx=1,
                    classes = 'Field Joint',
                    delay = 0.000,
+                   neg_samples=5,
                    out_dir = '',
                    split = 0.2,
                    use_perc = 1.0,
                    root_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'):
-    """
 
-    :param project:
-    :param channels:
-    :param classes:
-    :param delay:
-    :param out_dir:
-    :param split:
-    :param use_perc:
-    :param root_dir:
-    :return:
-    """
+    # Check if project is available:
+    if not project in ['LingShui', 'Troll', 'Turkstream']:
+        raise FileNotFoundError('Project files were not found in %s'.format(root_dir))
+
+    # Getting correct channel names:
+    channels, ch_str = ch(project, channel_idx)
+
     # Check if root directory exists:
     if not os.path.exists(root_dir):
         raise FileExistsError('specified root directory does not exist')
@@ -50,37 +47,42 @@ def create_dataset(project,
 
     if out_dir == '' and os.path.exists(os.path.join(root_dir, 'data-set')):
         save_dir = os.path.join(root_dir, 'data-set')
-        if not os.path.exists(os.path.join(save_dir, 'train')):
-            os.mkdir(os.path.join(save_dir, 'train'))
-        if not os.path.exists(os.path.join(save_dir, 'test')):
-            os.mkdir(os.path.join(save_dir, 'test'))
+        create_channel_folders(save_dir)
+        # if not os.path.exists(os.path.join(save_dir, 'train')):
+        #     os.mkdir(os.path.join(save_dir, 'train'))
+        # if not os.path.exists(os.path.join(save_dir, 'test')):
+        #     os.mkdir(os.path.join(save_dir, 'test'))
 
     elif out_dir == '' and not os.path.exists(os.path.join(root_dir, 'data-set')):
         choice = input("Would you like to create a 'data-set' folder in '%s'?" %root_dir).lower()
         if choice in yes:
             save_dir = os.path.join(root_dir, 'data-set')
             os.mkdir(save_dir)
-            if not os.path.exists(os.path.join(save_dir, 'train')):
-                os.mkdir(os.path.join(save_dir, 'train'))
-            if not os.path.exists(os.path.join(save_dir, 'test')):
-                os.mkdir(os.path.join(save_dir, 'test'))
+            create_channel_folders(save_dir)
+            # if not os.path.exists(os.path.join(save_dir, 'train')):
+            #     os.mkdir(os.path.join(save_dir, 'train'))
+            # if not os.path.exists(os.path.join(save_dir, 'test')):
+            #     os.mkdir(os.path.join(save_dir, 'test'))
         else:
             raise Exception('Data-set directory was not created, no data was extracted.')
 
     elif os.path.exists(out_dir):
         save_dir = out_dir
-        if not os.path.exists(os.path.join(save_dir, 'train')):
-            os.mkdir(os.path.join(save_dir, 'train'))
-        if not os.path.exists(os.path.join(save_dir, 'test')):
-            os.mkdir(os.path.join(save_dir, 'test'))
+        create_channel_folders(save_dir)
+        # if not os.path.exists(os.path.join(save_dir, 'train')):
+        #     os.mkdir(os.path.join(save_dir, 'train'))
+        # if not os.path.exists(os.path.join(save_dir, 'test')):
+        #     os.mkdir(os.path.join(save_dir, 'test'))
 
     else:
         choice = input('Specified output directory not found, would you like to create it? (y)/(n)')
         if choice in yes:
             os.mkdir(out_dir)
-            os.mkdir(os.path.join(out_dir, 'train'))
-            os.mkdir(os.path.join(out_dir, 'test'))
             save_dir = out_dir
+            create_channel_folders(save_dir)
+            # os.mkdir(os.path.join(out_dir, 'train'))
+            # os.mkdir(os.path.join(out_dir, 'test'))
+
         else:
             raise Exception('Specified save directory not found, and not created')
 
@@ -90,19 +92,31 @@ def create_dataset(project,
     data_points = extract_excel_data(project_dir, classes=classes)
 
     # Create training and test data-sets:
-    for mode, dirs in zip(['train', 'test'], [train_data_dirs, test_data_dirs]):
+    print('channels:', str(ch_str))
+    for channel_string, channel in zip(ch_str, channels):
+        channel_dir = os.path.join(save_dir, channel_string)
+        for mode, dirs in zip(['train', 'test'], [train_data_dirs, test_data_dirs]):
+            output_dir = os.path.join(channel_dir, mode)
+            if not os.path.exists(output_dir):
+                os.mkdir(output_dir)
 
-        output_dir = os.path.join(save_dir, mode, project)
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
-
-        for video_dir in dirs:
-            print(video_dir)
-            extract_all_frames(video_dir, data_points, output_dir, delay=delay, channels=channels)
+            for video_dir in dirs:
+                # extracting all the frames from the video (only Field Joints for now)
+                extract_all_pos_frames(project, video_dir, data_points, output_dir,
+                                       delay=delay, channel=channel)
+                extract_all_neg_frames(project, video_dir, data_points, output_dir,
+                                       nr_samples=neg_samples,
+                                       delay=delay, channel=channel)
 
     print('Dataset created for project', project)
 
 
 if __name__ == "__main__":
-    create_dataset('LingShui', delay=2.600,
-                   root_dir=r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--project', type=str, help='name of project folder in root directory')
+
+    opt = parser.parse_args()
+
+    root = os.getcwd() + r'\data'
+    create_dataset('LingShui', delay=2.500, neg_samples=5,
+                   root_dir=root)

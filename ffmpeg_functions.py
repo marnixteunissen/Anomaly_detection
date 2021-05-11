@@ -58,7 +58,7 @@ def extract_batch_frames(video_dir, sample_data, out_dir='', channels=[2]):
 	:param channels: 	int, list of int
 						Channels from which the .png files should be extracted
 	"""
-	video_files = get_video_file_names(video_dir, channels)
+	video_files = get_video_file_names(video_dir, channels, )
 	working_dir = os.getcwd()
 	if out_dir == '':
 		save_dir = working_dir
