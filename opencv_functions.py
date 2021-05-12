@@ -20,8 +20,8 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
                         Directory to store snapshots
     :param delay:       float, Default: 0.000 sec
                         Time correction for video
-    :param channels:    int, list of int Default: 1
-                        List of all the channels to extract frames from
+    :param channel:     int, Default: 1 ('TOP')
+                        the channel to extract frames from
     :param show:        bool, Default: False
                         bool to enable showing each picture as its being saved
                         if enabled will wait for a key for every frame.
@@ -78,6 +78,8 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
                            delay=0.000, nr_samples=5, interval=4000, channel=2, show=False):
     """
     Extracts all the frames at all event times in given video for all given channels
+    :param project:     string
+                        name of the project
     :param video_dir:   path (string)
                         path to the video directory
     :param excel_in:    dataframe
@@ -88,11 +90,11 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
                         Time correction for video
     :param nr_samples:  int, Default: 5
                         number of negative samples between positive events
-    :param interval     int, Default: 4000 ms
+    :param interval:    int, Default: 4000 ms
                         ms interval around event not to sample as negative
     :param channel:     int, Default: 2
                         channel to extract the frames from
-    :param show         bool, Default: False
+    :param show:        bool, Default: False
                         bool to enable showing each picture as its being saved
                         if enabled will wait for a key for every frame.
     """
@@ -134,11 +136,9 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     sample_nrs = [(x + excel_data.index[-1] + 1) for x in range(len(neg_stamps))]
     nr_success = 0
 
-    # Open video files one by one:
-    # for video_file, channel in zip(video_files, ch_str):
+    # Open video file
     print("Opening", os.path.join(video_dir, video_file))
     cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
-    # channel_dir = save_dir + channel
     if not os.path.exists(save_dir):
         raise FileNotFoundError('Channel directories were not created')
 
@@ -159,8 +159,8 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     print('')
 
 
-
 def get_first_frame(video_file):
+    """Returns the first frame of a video as an image"""
     cap = cv2.VideoCapture(video_file)
     success, image = cap.read()
     if not success:
@@ -169,6 +169,7 @@ def get_first_frame(video_file):
 
 
 def get_last_frame(video_file):
+    """Returns the last frame of a video as an image"""
     vid_cap = cv2.VideoCapture(video_file)
     frame_nr = vid_cap.get(cv2.CAP_PROP_FRAME_COUNT)
     vid_cap.set(cv2.CAP_PROP_POS_FRAMES, frame_nr-1)
@@ -179,6 +180,7 @@ def get_last_frame(video_file):
 
 
 def extract_frame(video_file, time=500):
+    """Returns the frame at the specified time as an image"""
     cap = cv2.VideoCapture(video_file)
     cap.set(cv2.CAP_PROP_POS_MSEC, time)
     label = []

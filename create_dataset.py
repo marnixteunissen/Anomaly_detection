@@ -4,21 +4,16 @@ from Anomaly_detection.opencv_functions import *
 import os
 import argparse
 
-# steps:
-# Set root directory:
-# Select project:
-# Make train-test split:
-# Set location to store test and training data
 
 def create_dataset(project,
                    channel_idx=1,
-                   classes = 'Field Joint',
-                   delay = 0.000,
+                   classes='Field Joint',
+                   delay=0.000,
                    neg_samples=5,
-                   out_dir = '',
-                   split = 0.2,
-                   use_perc = 1.0,
-                   root_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'):
+                   out_dir='',
+                   split=0.2,
+                   use_perc=1.0,
+                   root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
     # Check if project is available:
     if not project in ['LingShui', 'Troll', 'Turkstream']:
@@ -43,36 +38,23 @@ def create_dataset(project,
 
     # Setting output directory:
     yes = {'yes', 'y', 'ye', ''}
-    no = {'no', 'n'}
 
     if out_dir == '' and os.path.exists(os.path.join(root_dir, 'data-set')):
         save_dir = os.path.join(root_dir, 'data-set')
         create_channel_folders(save_dir)
-        # if not os.path.exists(os.path.join(save_dir, 'train')):
-        #     os.mkdir(os.path.join(save_dir, 'train'))
-        # if not os.path.exists(os.path.join(save_dir, 'test')):
-        #     os.mkdir(os.path.join(save_dir, 'test'))
 
     elif out_dir == '' and not os.path.exists(os.path.join(root_dir, 'data-set')):
-        choice = input("Would you like to create a 'data-set' folder in '%s'?" %root_dir).lower()
+        choice = input("Would you like to create a 'data-set' folder in '%s'?".format(root_dir)).lower()
         if choice in yes:
             save_dir = os.path.join(root_dir, 'data-set')
             os.mkdir(save_dir)
             create_channel_folders(save_dir)
-            # if not os.path.exists(os.path.join(save_dir, 'train')):
-            #     os.mkdir(os.path.join(save_dir, 'train'))
-            # if not os.path.exists(os.path.join(save_dir, 'test')):
-            #     os.mkdir(os.path.join(save_dir, 'test'))
         else:
             raise Exception('Data-set directory was not created, no data was extracted.')
 
     elif os.path.exists(out_dir):
         save_dir = out_dir
         create_channel_folders(save_dir)
-        # if not os.path.exists(os.path.join(save_dir, 'train')):
-        #     os.mkdir(os.path.join(save_dir, 'train'))
-        # if not os.path.exists(os.path.join(save_dir, 'test')):
-        #     os.mkdir(os.path.join(save_dir, 'test'))
 
     else:
         choice = input('Specified output directory not found, would you like to create it? (y)/(n)')
@@ -80,8 +62,6 @@ def create_dataset(project,
             os.mkdir(out_dir)
             save_dir = out_dir
             create_channel_folders(save_dir)
-            # os.mkdir(os.path.join(out_dir, 'train'))
-            # os.mkdir(os.path.join(out_dir, 'test'))
 
         else:
             raise Exception('Specified save directory not found, and not created')
@@ -108,7 +88,7 @@ def create_dataset(project,
                                        nr_samples=neg_samples,
                                        delay=delay, channel=channel)
 
-    print('Dataset created for project', project)
+    print('Data-set created for project', project)
 
 
 if __name__ == "__main__":
