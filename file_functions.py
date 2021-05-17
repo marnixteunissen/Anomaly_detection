@@ -11,7 +11,7 @@ import pandas as pd
 
 
 def ch(project, channels):
-    # Each project has the channels distributed in a different way:
+    # Each project has the channels distributed in a specific way:
     proj_ch = pd.DataFrame({'POS': ['LEFT', 'TOP', 'RIGHT'],
                              'LingShui':    [3, 2, 4],
                              'Troll':       [1, 2, 3],

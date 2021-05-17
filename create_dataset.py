@@ -112,11 +112,7 @@ def create_dataset(project,
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--project', type=str, help='name of project folder in root directory')
-
-    opt = parser.parse_args()
-
+    # TODO: add parser arguments for commandline running
     root = os.getcwd() + r'\data'
     create_dataset('LingShui', delay=2.500, neg_samples=5,
                    root_dir=root)
