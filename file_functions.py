@@ -11,7 +11,16 @@ import pandas as pd
 
 
 def ch(project, channels):
+    """
+    Maps the given video channels to the videostreams in the project.
+    :param project: str: name of the project
+    :param channels: int, list of int. int referring to the channel. left=0, top=1, right=2
+    :return:    project_channels, int, list of int, corresponding to channels in project.
+                channels_strings, str, list of str, from ['LEFT', 'TOP', 'RIGHT']
+    """
     # Each project has the channels distributed in a specific way:
+
+    # Each project has the channels distributed in a different way:
     proj_ch = pd.DataFrame({'POS': ['LEFT', 'TOP', 'RIGHT'],
                              'LingShui':    [3, 2, 4],
                              'Troll':       [1, 2, 3],
@@ -26,12 +35,8 @@ def ch(project, channels):
     return proj_channels, ch_str
 
 
-def get_video_dir():
-    video_dir = []
-    return video_dir
-
-
 def get_video_file_names(project, video_dir, channel_idx):
+
     # Get the correct channel name from the project
     channels, ch_str = ch(project, channel_idx)
 
@@ -89,6 +94,12 @@ def train_test_split(project_dir, test_split=0.2, startstr='Video', part=1.0):
 
 
 def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
+    """
+    Creates folder structure for saving the data-set
+    :param root_dir: path to folder where the dataset will be saved
+    :param classes: list of str, containing the classes. Default: ["FJOK", "NONE"]
+    :return:
+    """
     for channel in ['LEFT', 'TOP', 'RIGHT']:
         if not os.path.exists(os.path.join(root_dir, channel)):
             os.mkdir(os.path.join(root_dir, channel))
@@ -98,13 +109,6 @@ def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
             for c in classes:
                 if not os.path.exists(os.path.join(root_dir, channel, mode, c)):
                     os.mkdir(os.path.join(root_dir, channel, mode, c))
-
-    # if not os.path.exists(os.path.join(root_dir, 'LEFT')):
-    #     os.mkdir(os.path.join(root_dir, 'LEFT'))
-    # if not os.path.exists(os.path.join(root_dir, 'TOP')):
-    #     os.mkdir(os.path.join(root_dir, 'TOP'))
-    # if not os.path.exists(os.path.join(root_dir, 'RIGHT')):
-    #     os.mkdir(os.path.join(root_dir, 'RIGHT'))
 
 
 if __name__ == "__main__":
