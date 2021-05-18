@@ -34,10 +34,9 @@ def save_losses(history, save_path):
     plt.clf()
 
 
-def run_layer_filter_experiments(layers, filters, out_dir=os.getcwd(), optimizer='adam', epochs=3):
-
-
-    data_dir = os.getcwd() + r'\data\data-set'
+def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
+    if data_dir is None:
+        data_dir = os.getcwd() + r'\data\data-set'
     train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train')
     run_path = os.path.join(out_dir, 'runs')
 
@@ -141,4 +140,4 @@ if __name__ == "__main__":
     layers = [2, 4, 6]
     filters = [8, 16, 32]
 
-    run_layer_filter_experiments(layers, filters, epochs=1)
+    run_layer_filter_experiments(layers, filters, data_dir=r'E:\Anomaly_detection', epochs=10)
