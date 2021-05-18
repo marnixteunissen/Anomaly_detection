@@ -93,6 +93,9 @@ def create_dataset(project,
 
 if __name__ == "__main__":
     # TODO: add parser arguments for commandline running
+    # Delay LingShui:   1.900
+    # Delay Troll:      1.550
+    # Delay Turkstream: ???
     root = os.getcwd() + r'\data'
-    create_dataset('LingShui', delay=2.500, neg_samples=5,
+    create_dataset('Troll', delay=1.550, neg_samples=2,
                    root_dir=root)
