@@ -41,10 +41,13 @@ def eval_show_false(model, data_dir, channel='TOP'):
 
 
 if __name__ == "__main__":
-    data_dir = os.getcwd() + r'\data\data-set'
+    data_dir = r'E:\Anomaly_detection'
     train_set, val_set = data_processing.create_data_sets(data_dir, 'TOP', 'train')
 
     test_model = build_conv_network(3, 16)
     # test_model.fit(train_set, validation_data=val_set, epochs=5)
     # evaluate_network(test_model, data_dir)
-    eval_show_false(test_model, data_dir)
+    # eval_show_false(test_model, data_dir)
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/25')
+    model_load = tf.keras.models.load_model(exp_dir+'/saved_model')
+    evaluate_network(model_load, data_dir)

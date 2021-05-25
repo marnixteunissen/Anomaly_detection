@@ -147,4 +147,4 @@ if __name__ == "__main__":
     layers = [4]
     filters = [16]
 
-    run_layer_filter_experiments(layers, filters, data_dir=r'data\data-set', epochs=1)
+    run_layer_filter_experiments(layers, filters, data_dir=r'E:\Anomaly_detection', epochs=5)
