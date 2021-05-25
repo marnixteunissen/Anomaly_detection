@@ -23,13 +23,14 @@ def create_data_sets(data_dir, channel, mode, batch_size=32, image_size=[480, 36
     return train_ds, val_ds
 
 
-def create_test_set(data_dir, channel, image_size=[480, 360]):
+def create_test_set(data_dir, channel, image_size=[480, 360], batch_size=1):
     data_dir = os.path.join(data_dir, channel, 'test')
     width, height = image_size[0], image_size[1]
     test_ds = preprocessing.image_dataset_from_directory(
         data_dir,
         seed=123,
-        image_size=(height, width))
+        image_size=(height, width),
+        batch_size=batch_size)
 
     return test_ds
 
