@@ -1,11 +1,5 @@
-import numpy as np
 import os
-import PIL
-import PIL.Image
 import tensorflow.keras.preprocessing as preprocessing
-from tensorflow.keras import layers
-import tensorflow_datasets as tfds
-import matplotlib.pyplot as plt
 
 
 def create_data_sets(data_dir, channel, mode, batch_size=32, image_size=[480, 360]):
@@ -29,8 +23,17 @@ def create_data_sets(data_dir, channel, mode, batch_size=32, image_size=[480, 36
     return train_ds, val_ds
 
 
+def create_test_set(data_dir, channel, image_size=[480, 360]):
+    data_dir = os.path.join(data_dir, channel, 'test')
+    width, height = image_size[0], image_size[1]
+    test_ds = preprocessing.image_dataset_from_directory(
+        data_dir,
+        seed=123,
+        image_size=(height, width))
+
+    return test_ds
+
+
 if __name__ == "__main__":
     train, val = create_data_sets(r'data\data-set', 'TOP', 'train', batch_size=4)
-    class_names = train.class_names
-    print(class_names)
-    norm_layer = layers.experimental.preprocessing.Rescaling(1./255)
+    print('Classes:', train.class_names)

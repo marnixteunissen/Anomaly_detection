@@ -44,7 +44,7 @@ def create_dataset(project,
         create_channel_folders(save_dir)
 
     elif out_dir == '' and not os.path.exists(os.path.join(root_dir, 'data-set')):
-        choice = input("Would you like to create a 'data-set' folder in '%s'?".format(root_dir)).lower()
+        choice = input("Would you like to create a 'data-set' folder in '{}'?".format(root_dir)).lower()
         if choice in yes:
             save_dir = os.path.join(root_dir, 'data-set')
             os.mkdir(save_dir)
@@ -97,5 +97,7 @@ if __name__ == "__main__":
     # Delay Troll:      1.550
     # Delay Turkstream: ???
     root = os.getcwd() + r'\data'
-    create_dataset('Troll', delay=1.550, neg_samples=2,
+    create_dataset('Troll', delay=1.550, neg_samples=6,
+                   root_dir=root, use_perc=0.1)
+    create_dataset('Troll', delay=1.900, neg_samples=6,
                    root_dir=root)

@@ -24,6 +24,9 @@ def extract_excel_data(project, classes='Field Joint'):
     columns = ['Date', 'Time', 'KP(km)', 'Primary Code', 'Secondary Code']
     # Opening the Datasheet as DateFrame(s)
     excel_data = pd.read_excel(excel_file, sheet_name=classes, usecols=columns)
+    print(type(excel_data['Time'][0]))
+    if type(excel_data['Time'][0]) != datetime:
+        excel_data['Time'] = pd.to_datetime(excel_data['Time'])
     # Add column with date and time concatenated:
     excel_data['datetime'] = excel_data.apply(lambda r: datetime.combine(r['Date'], r['Time']), 1)
 
@@ -54,7 +57,7 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 
     cap = cv2.VideoCapture(os.path.join(video_folder, video_file))
     fps = cap.get(cv2.CAP_PROP_FPS)
-    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT);
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     total_sec = float(total_frames) / float(fps)
     last_stamp = first_stamp + timedelta(seconds=total_sec)
 
@@ -76,9 +79,9 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 if __name__ == "__main__":
     dir = os.getcwd()
     print(dir)
-    excel = extract_excel_data(dir + r'\data\LingShui')
-    time_stamps = extract_video_events(excel, dir + r'\data\LingShui\Video\DATA_20200627074626222', -2.609)
-    print(time_stamps)
+    excel = extract_excel_data(dir + r'\data\Turkstream')
+    #time_stamps = extract_video_events(excel, dir + r'\data\LingShui\Video\DATA_20200627074626222', -2.609)
+    #print(time_stamps)
 
 
 
