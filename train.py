@@ -77,13 +77,13 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
     def train(model, train_ds, val_ds, epochs):
         # create callback to save best model:
         save_best = tf.keras.callbacks.ModelCheckpoint(
-            filepath=os.path.join(ex.observers[0].dir, 'best_weights'),
+            filepath=os.path.join(ex.observers[0].dir, 'best_weights.ckpt'),
             save_weights_only=True,
             monitor='val_accuracy',
             mode='max',
             save_best_only=True)
         # start training:
-        history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
+        history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=save_best)
 
         return history
 
@@ -143,7 +143,7 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
 
 
 if __name__ == "__main__":
-    layers = [2, 4, 6]
-    filters = [8, 16, 32]
+    layers = [4, 6]
+    filters = [16, 32]
 
     run_layer_filter_experiments(layers, filters, data_dir=r'E:\Anomaly_detection', epochs=10)
