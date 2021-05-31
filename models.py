@@ -11,11 +11,15 @@ def build_conv_network(num_layers, filters, kernel=3, classes=2, activation='rel
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
-    model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(360, 480, 3)))
+    model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(720, 1280, 3)))
     # construct network:
     for i in range(num_layers):
-        model.add(layers.Conv2D(filters, kernel, activation=activation))
-        model.add(layers.MaxPooling2D())
+        if i % 2 == 0:
+            model.add(layers.Conv2D(filters, kernel, activation=activation))
+            model.add(layers.MaxPooling2D())
+        else:
+            model.add(layers.Conv2D(filters, kernel, activation=activation))
+            model.add(layers.MaxPooling2D(strides=(1, 1)))
 
     model.add(layers.Flatten())
     model.add(layers.Dense(128, activation=activation))

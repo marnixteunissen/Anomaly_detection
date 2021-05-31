@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import models
 import data_processing
+import create_dataset
 import os
 import itertools
 from sacred import Experiment
@@ -65,7 +66,7 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
 
     @ex.capture
     def data():
-        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train')
+        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', image_size=[720,1280])
         return train_data, val_data
 
     @ex.capture
@@ -100,6 +101,11 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
         plt.savefig(os.path.join(ex.observers[0].dir, 'losses.png'))
         plt.clf()
 
+    @ex.capture
+    def test(model):
+        test_set = create_dataset.create_test_set(data_dir, channel='TOP')
+        result = model.evaluate(test_set)
+
     @ex.main
     def main():
         # Get data
@@ -117,8 +123,11 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
         # Save plot with losses
         print('Saving losses...')
         save_losses(history)
-
         print('Final accuracy: ', history.history['val_accuracy'][-1])
+
+        # run test
+
+
 
 
     i = 1
@@ -144,7 +153,7 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
 
 
 if __name__ == "__main__":
-    layers = [4]
-    filters = [16]
+    layers = [8]
+    filters = [32, 64]
 
-    run_layer_filter_experiments(layers, filters, data_dir=r'E:\Anomaly_detection', epochs=5)
+    run_layer_filter_experiments(layers, filters, data_dir=r'E:\Anomaly_detection', epochs=2)
