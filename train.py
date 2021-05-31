@@ -95,6 +95,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
     def test(model, image_size):
         test_set = data_processing.create_test_set(data_dir, channel='TOP', image_size=image_size)
         result = model.evaluate(test_set)
+        return result
 
     @ex.main
     def main():
@@ -122,7 +123,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
 
     i = 1
     experiments = list(itertools.product(layers, filters))
-
+    results = {}
     for l, f in experiments:
         print('layers: {}, filters: {}'.format(l, f))
         conf = {'train_ds': train_data,
@@ -135,14 +136,16 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
                 'epochs': epochs
                 }
         exp_finish = ex.run(config_updates=conf)
-
+        results['layers: {}, filters: {}'.format(l, f)] = exp_finish.result
         print('run {}/{} complete'.format(i,len(experiments)))
 
         i = i+1
 
+    print(results)
+
 
 if __name__ == "__main__":
-    layers = [8, 10, 12]
-    filters = [4, 8]
+    layers = [12]
+    filters = [8, 12]
 
-    run_layer_filter_experiments(layers, filters, (1280, 720), 32, data_dir=r'E:\Anomaly_detection', epochs=2)
+    run_layer_filter_experiments(layers, filters, (1280, 720), 32, data_dir=r'E:\Anomaly_detection', epochs=20)
