@@ -51,12 +51,19 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         dataset_name = 'Anomaly Detection'
         net_architecture = 'Simple CNN'
         data_dir = os.getcwd() + r'\data\data-set'
-        image_size = (720, 1280)
+        train_ds = []
+        val_ds = []
+        n_layers = []
+        n_filters = []
+        image_size = []
+        batch_size = []
+        optimizer = []
+        epochs = []
 
 
     @ex.capture
-    def data(image_size):
-        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', image_size=image_size)
+    def data(image_size, batch_size):
+        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size, image_size=image_size)
         return train_data, val_data
 
     @ex.capture
@@ -119,23 +126,21 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         # run test
         test(model)
 
-
-
     i = 1
     experiments = list(itertools.product(layers, filters))
     results = {}
+
     for l, f in experiments:
         print('layers: {}, filters: {}'.format(l, f))
-        conf = {'train_ds': train_data,
-                'val_ds': val_data,
-                'n_layers': int(l),
+        conf = {'n_layers': int(l),
                 'n_filters': int(f),
                 'image_size': image_size,
-                'batch_size' : batch_size,
+                'batch_size': batch_size,
                 'optimizer': optimizer,
-                'epochs': epochs
-                }
+                'epochs': epochs}
+
         exp_finish = ex.run(config_updates=conf)
+
         results['layers: {}, filters: {}'.format(l, f)] = exp_finish.result
         print('run {}/{} complete'.format(i,len(experiments)))
 
@@ -148,4 +153,4 @@ if __name__ == "__main__":
     layers = [12]
     filters = [8, 12]
 
-    run_layer_filter_experiments(layers, filters, (1280, 720), 32, data_dir=r'E:\Anomaly_detection', epochs=20)
+    run_layer_filter_experiments(layers, filters, (1280, 720), batch_size=32, data_dir=r'E:\Anomaly_detection', epochs=20)
