@@ -44,7 +44,7 @@ def eval_show_false(model, data_dir,save_dir , save_false=False, channel='TOP'):
 
 if __name__ == "__main__":
     data_dir = r'E:\Anomaly_detection'
-    exp_dir = os.path.abspath(r'runs/Varying layers and filters/27')
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/42')
     model_load = tf.keras.models.load_model(exp_dir+'/saved_model')
     evaluate_network(model_load, data_dir)
-    eval_show_false(model_load, data_dir, save_dir=exp_dir, save_false=True)
+    #eval_show_false(model_load, data_dir, save_dir=exp_dir, save_false=True)

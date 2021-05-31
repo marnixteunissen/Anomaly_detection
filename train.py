@@ -35,10 +35,10 @@ def save_losses(history, save_path):
     plt.clf()
 
 
-def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
+def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
-    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train')
+    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
     run_path = os.path.join(out_dir, 'runs')
 
     ex = Experiment('Varying layers and filters')
@@ -51,22 +51,12 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
         dataset_name = 'Anomaly Detection'
         net_architecture = 'Simple CNN'
         data_dir = os.getcwd() + r'\data\data-set'
-        # train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train')
+        image_size = (720, 1280)
 
-        # run_path = os.path.join(out_dir, 'runs')
-
-        ## number of layers
-        # n_layers = []
-        ## number of filters per layer
-        # n_filters = []
-        ## Optimizer:
-        # optim = []
-        ## Epochs:
-        # ep = []
 
     @ex.capture
-    def data():
-        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', image_size=[720,1280])
+    def data(image_size):
+        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', image_size=image_size)
         return train_data, val_data
 
     @ex.capture
@@ -102,8 +92,8 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
         plt.clf()
 
     @ex.capture
-    def test(model):
-        test_set = create_dataset.create_test_set(data_dir, channel='TOP')
+    def test(model, image_size):
+        test_set = data_processing.create_test_set(data_dir, channel='TOP', image_size=image_size)
         result = model.evaluate(test_set)
 
     @ex.main
@@ -126,7 +116,7 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
         print('Final accuracy: ', history.history['val_accuracy'][-1])
 
         # run test
-
+        test(model)
 
 
 
@@ -139,13 +129,12 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
                 'val_ds': val_data,
                 'n_layers': int(l),
                 'n_filters': int(f),
+                'image_size': image_size,
+                'batch_size' : batch_size,
                 'optimizer': optimizer,
-                'epochs': epochs,
+                'epochs': epochs
                 }
-        exp_finish = ex.run(config_updates={'n_layers': l,
-                                            'n_filters': f,
-                                            'optimizer': optimizer,
-                                            'epochs': epochs})
+        exp_finish = ex.run(config_updates=conf)
 
         print('run {}/{} complete'.format(i,len(experiments)))
 
@@ -153,7 +142,7 @@ def run_layer_filter_experiments(layers, filters, data_dir=None, out_dir=os.getc
 
 
 if __name__ == "__main__":
-    layers = [8]
-    filters = [32, 64]
+    layers = [8, 10, 12]
+    filters = [4, 8]
 
-    run_layer_filter_experiments(layers, filters, data_dir=r'E:\Anomaly_detection', epochs=2)
+    run_layer_filter_experiments(layers, filters, (1280, 720), 32, data_dir=r'E:\Anomaly_detection', epochs=2)

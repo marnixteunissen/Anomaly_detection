@@ -7,11 +7,11 @@ import data_processing
 import os
 
 
-def build_conv_network(num_layers, filters, kernel=3, classes=2, activation='relu', optimizer='adam'):
+def build_conv_network(num_layers, filters, image_size=(1280, 720), kernel=3, classes=2, activation='relu', optimizer='adam'):
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
-    model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(720, 1280, 3)))
+    model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
         if i % 2 == 0:
