@@ -80,8 +80,7 @@ if __name__ == "__main__":
     dir = os.getcwd()
     print(dir)
     excel = extract_excel_data(dir + r'\data\Turkstream')
-    #time_stamps = extract_video_events(excel, dir + r'\data\LingShui\Video\DATA_20200627074626222', -2.609)
-    #print(time_stamps)
+
 
 
 

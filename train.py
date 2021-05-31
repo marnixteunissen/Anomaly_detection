@@ -1,4 +1,5 @@
 import tensorflow as tf
+from itertools import cycle
 import numpy as np
 import pandas as pd
 import models
@@ -35,7 +36,7 @@ def save_losses(history, save_path):
     plt.clf()
 
 
-def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
+def run_layer_filter_experiments(arch, layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
     train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
@@ -67,8 +68,11 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         return train_data, val_data
 
     @ex.capture
-    def build_model(n_layers, n_filters, optimizer):
-        model = models.build_conv_network(n_layers, n_filters, optimizer=optimizer)
+    def build_model(n_layers, filters, optimizer):
+        if arch == "Simple CNN":
+            model = models.build_conv_network(n_layers, filters, optimizer=optimizer)
+        elif arch == "VGG like":
+            model = models.VGG_like_network(n_layers, filters)
         return model
 
     @ex.capture
@@ -127,13 +131,18 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         test(model)
 
     i = 1
-    experiments = list(itertools.product(layers, filters))
+    if arch == "Simple CNN":
+        experiments = list(itertools.product(layers, filters))
+    if arch == "VGG like":
+        experiments = list(zip(layers, cycle(filters)))
+
     results = {}
 
     for l, f in experiments:
         print('layers: {}, filters: {}'.format(l, f))
-        conf = {'n_layers': int(l),
-                'n_filters': int(f),
+        conf = {'net_architecture': arch,
+                'n_layers': int(l),
+                'filters': f,
                 'image_size': image_size,
                 'batch_size': batch_size,
                 'optimizer': optimizer,
@@ -150,7 +159,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
 
 
 if __name__ == "__main__":
-    layers = [12]
+    layers = [3]
     filters = [8, 12]
 
-    run_layer_filter_experiments(layers, filters, (1280, 720), batch_size=32, data_dir=r'E:\Anomaly_detection', epochs=20)
+    run_layer_filter_experiments("VGG like", layers, filters, (1280, 720), batch_size=32, data_dir=r'E:\Anomaly_detection', epochs=1)

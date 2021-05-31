@@ -1,5 +1,6 @@
 import tensorflow as tf
 from data_processing import create_test_set
+import json
 from models import build_conv_network
 import data_processing
 import os
@@ -8,14 +9,14 @@ import cv2
 import numpy as np
 
 
-def evaluate_network(model, data_dir, channel='TOP'):
-    test_set = create_test_set(data_dir, channel)
+def evaluate_network(model, data_dir, image_size, channel='TOP'):
+    test_set = create_test_set(data_dir, channel, image_size=image_size)
     result = model.evaluate(test_set)
 
 
-def eval_show_false(model, data_dir,save_dir , save_false=False, channel='TOP'):
+def eval_show_false(model, data_dir, image_size, save_dir, save_false=False, channel='TOP'):
     class_names = {0: "FJOK", 1: "NONE"}
-    test_set = create_test_set(data_dir, channel)
+    test_set = create_test_set(data_dir, channel, image_size=image_size)
     # result = model.evaluate(test_set)
 
     for image, label in test_set:
@@ -43,8 +44,13 @@ def eval_show_false(model, data_dir,save_dir , save_false=False, channel='TOP'):
 
 
 if __name__ == "__main__":
-    data_dir = r'E:\Anomaly_detection'
-    exp_dir = os.path.abspath(r'runs/Varying layers and filters/42')
+    data_dir = r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data\data-set' # r'E:\Anomaly_detection'
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/71')
+
+    with open(exp_dir+r'/config.json') as f:
+        img_size = json.load(f)['image_size']['py/tuple']
+    print(img_size)
+
     model_load = tf.keras.models.load_model(exp_dir+'/saved_model')
-    evaluate_network(model_load, data_dir)
-    #eval_show_false(model_load, data_dir, save_dir=exp_dir, save_false=True)
+    evaluate_network(model_load, data_dir, img_size)
+    eval_show_false(model_load, data_dir, img_size, save_dir=exp_dir, save_false=True)
