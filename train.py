@@ -167,4 +167,4 @@ if __name__ == "__main__":
     layers = [10]
     filters = [64]
 
-    run_layer_filter_experiments("Simple CNN", layers, filters, (640, 360), batch_size=16, data_dir=r'E:\Anomaly_detection', epochs=30)
+    run_layer_filter_experiments("Simple CNN", layers, filters, (640, 360), batch_size=16, data_dir=r'E:\Anomaly_detection', epochs=3)

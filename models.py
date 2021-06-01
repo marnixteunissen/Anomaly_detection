@@ -51,7 +51,7 @@ def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=3, class
 
     model.compile(
         optimizer=optimizer,
-        loss=losses.BinaryCrossentropy(from_logits=True),
+        loss=losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=['accuracy'])
 
     return model
