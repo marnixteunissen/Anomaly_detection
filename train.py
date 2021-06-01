@@ -68,11 +68,11 @@ def run_layer_filter_experiments(arch, layers, filters, image_size, batch_size, 
         return train_data, val_data
 
     @ex.capture
-    def build_model(n_layers, filters, optimizer):
+    def build_model(n_layers, filters, optimizer, image_size):
         if arch == "Simple CNN":
-            model = models.build_conv_network(n_layers, filters, optimizer=optimizer)
+            model = models.build_conv_network(n_layers, filters, image_size=image_size)
         elif arch == "VGG like":
-            model = models.VGG_like_network(n_layers, filters)
+            model = models.VGG_like_network(n_layers, filters, image_size=image_size)
         return model
 
     @ex.capture
@@ -131,35 +131,40 @@ def run_layer_filter_experiments(arch, layers, filters, image_size, batch_size, 
         test(model)
 
     i = 1
+    experiments = {}
     if arch == "Simple CNN":
-        experiments = list(itertools.product(layers, filters))
+        experiment_list = list(itertools.product(layers, filters))
+        experiments['layers'] = layers
+        experiments['filters'] = filters
     if arch == "VGG like":
-        experiments = list(zip(layers, cycle(filters)))
+        experiments['layers'] = layers
+        experiments['filters'] = filters
+
 
     results = {}
 
-    for l, f in experiments:
+    for l, f in zip(experiments['layers'], experiments['filters']):
         print('layers: {}, filters: {}'.format(l, f))
         conf = {'net_architecture': arch,
                 'n_layers': int(l),
                 'filters': f,
                 'image_size': image_size,
                 'batch_size': batch_size,
-                'optimizer': optimizer,
+                # 'optimizer': optimizer,
                 'epochs': epochs}
 
         exp_finish = ex.run(config_updates=conf)
 
         results['layers: {}, filters: {}'.format(l, f)] = exp_finish.result
-        print('run {}/{} complete'.format(i,len(experiments)))
+        # print('run {}/{} complete'.format(i,len(experiments)))
 
         i = i+1
 
-    print(results)
-
 
 if __name__ == "__main__":
-    layers = [3]
-    filters = [8, 12]
+    # layers = [5, 5]
+    # filters = [[32, 64, 128, 256, 512], [16, 32, 64, 128, 256]]
+    layers = [10]
+    filters = [64]
 
-    run_layer_filter_experiments("VGG like", layers, filters, (1280, 720), batch_size=32, data_dir=r'E:\Anomaly_detection', epochs=1)
+    run_layer_filter_experiments("Simple CNN", layers, filters, (640, 360), batch_size=16, data_dir=r'E:\Anomaly_detection', epochs=30)
