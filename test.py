@@ -30,22 +30,22 @@ def eval_show_false(model, data_dir, image_size, save_dir, save_false=False, cha
             print('Prediction: {} ({}%)'.format(pred, prob.numpy()[0][pred]*100))
             image = tf.squeeze(image)
 
-            # cv2.imshow('Class: {}, Prediction: {} ({})'.format(class_names[label],
-            #                                                    class_names[pred],
-            #                                                    prob.numpy()[0][pred]),
-            #            image.numpy().astype("uint8"))
+            cv2.imshow('Class: {}, Prediction: {} ({})'.format(class_names[label],
+                                                               class_names[pred],
+                                                               prob.numpy()[0][pred]),
+                       image.numpy().astype("uint8"))
             if save_false:
                 if not os.path.exists(save_dir+r'/wrong_labels'):
                     os.mkdir(save_dir+r'/wrong_labels')
                 cv2.imwrite(save_dir+r'/wrong_labels/{}_{}.png'.format(class_names[pred], prob.numpy()[0][pred]),
                             image.numpy().astype("uint8"))
-            # if cv2.waitKey(1) == ord('q'):
-            #     continue
+            if cv2.waitKey(1) == ord('q'):
+                continue
 
 
 if __name__ == "__main__":
     data_dir = r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data\data-set' # r'E:\Anomaly_detection'
-    exp_dir = os.path.abspath(r'runs/Varying layers and filters/113')
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/62')
 
     with open(exp_dir+r'/config.json') as f:
         img_size = json.load(f)['image_size']['py/tuple']

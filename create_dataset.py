@@ -99,5 +99,5 @@ if __name__ == "__main__":
     root = os.getcwd() + r'\data'
     create_dataset('Troll', delay=1.550, neg_samples=6,
                    root_dir=root, use_perc=0.1)
-    create_dataset('Troll', delay=1.900, neg_samples=6,
+    create_dataset('LingShui', delay=1.900, neg_samples=6,
                    root_dir=root)
