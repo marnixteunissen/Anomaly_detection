@@ -45,7 +45,7 @@ def eval_show_false(model, data_dir, image_size, save_dir, save_false=False, cha
 
 if __name__ == "__main__":
     data_dir = r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data\data-set' # r'E:\Anomaly_detection'
-    exp_dir = os.path.abspath(r'runs/Varying layers and filters/71')
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/113')
 
     with open(exp_dir+r'/config.json') as f:
         img_size = json.load(f)['image_size']['py/tuple']
