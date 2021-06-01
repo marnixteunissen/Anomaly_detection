@@ -1,6 +1,6 @@
-from Anomaly_detection.file_functions import *
-from Anomaly_detection.excel_functions import *
-from Anomaly_detection.opencv_functions import *
+from file_functions import *
+from excel_functions import *
+from opencv_functions import *
 import os
 import argparse
 

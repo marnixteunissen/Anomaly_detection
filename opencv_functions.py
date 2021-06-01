@@ -1,7 +1,7 @@
 import os
 import cv2
-import Anomaly_detection.excel_functions as excel_f
-import Anomaly_detection.file_functions as file
+import excel_functions as excel_f
+import file_functions as file
 from tqdm import tqdm
 import random
 

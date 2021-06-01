@@ -36,7 +36,7 @@ def save_losses(history, save_path):
     plt.clf()
 
 
-def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
+def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
     train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
@@ -58,7 +58,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         n_filters = []
         image_size = []
         batch_size = []
-        optimizer = []
+        optimizer = 'adam'
         epochs = []
 
 
@@ -138,12 +138,10 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
 
     for l, f in zip(experiments['layers'], experiments['filters']):
         print('layers: {}, filters: {}'.format(l, f))
-        conf = {'net_architecture': arch,
-                'n_layers': int(l),
+        conf = {'n_layers': int(l),
                 'filters': f,
                 'image_size': image_size,
                 'batch_size': batch_size,
-                # 'optimizer': optimizer,
                 'epochs': epochs}
 
         exp_finish = ex.run(config_updates=conf)
@@ -159,7 +157,7 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
     train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
     run_path = os.path.join(out_dir, 'runs')
 
-    ex = Experiment('Varying layers and filters')
+    ex = Experiment('VGG architectures')
     ex.observers.append(FileStorageObserver(basedir=os.path.join(run_path, ex.path)))
     # loss_path = os.path.join(run_path, ex.path, 'losses.png')
 
@@ -175,7 +173,7 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
         n_filters = []
         image_size = []
         batch_size = []
-        optimizer = []
+        optimizer = 'adam'
         epochs = []
 
 
@@ -258,7 +256,6 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
                 'filters': f,
                 'image_size': image_size,
                 'batch_size': batch_size,
-                # 'optimizer': optimizer,
                 'epochs': epochs}
 
         exp_finish = ex.run(config_updates=conf)
@@ -271,11 +268,12 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
 
 
 if __name__ == "__main__":
-    # layers = [5, 5]
-    # filters = [[32, 64, 128, 256, 512], [16, 32, 64, 128, 256]]
+    layersvgg = [6, 5]
+    filtersvgg = [[16, 32, 64, 128, 256, 512], [32, 64, 128, 256, 512]]
     layers = [10]
-    filters = [64]
+    filters = [128]
 
-    #run_layer_filter_experiments("Simple CNN", layers, filters, (640, 360), batch_size=8, data_dir=r'E:\Anomaly_detection', epochs=3)
-    run_layer_filter_experiments("Simple CNN", layers, filters, (640, 360), batch_size=8,
-                                 data_dir=r'data\data-set', epochs=3)
+    # run_layer_filter_experiments(layers, filters, (640, 360), batch_size=8,
+    #                              data_dir=r'E:\Anomaly_detection', epochs=15)
+    run_VGG_experiments(layersvgg, filtersvgg, (640, 360), batch_size=8,
+                                 data_dir=r'E:\Anomaly_detection', epochs=10)
