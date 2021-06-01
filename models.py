@@ -12,7 +12,8 @@ def build_conv_network(num_layers, filters, image_size=(640, 360), kernel=3, cla
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
-    model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
+    # model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
+    model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
         if i % 2 == 0:
@@ -38,7 +39,8 @@ def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=3, class
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
-    model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
+    # model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
+    model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
         model.add(layers.Conv2D(filters[i], kernel))
