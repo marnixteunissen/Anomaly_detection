@@ -25,15 +25,17 @@ def extract_excel_data(project, classes='Field Joint'):
     # Opening the Datasheet as DateFrame(s)
     excel_data = pd.read_excel(excel_file, sheet_name=classes, usecols=columns)
     print(type(excel_data['Time'][0]))
-    print(type(excel_data['Date'][0]))
+    print(type(excel_data['Time'][75000]))
+
     if project.endswith('Turkstream'):
         excel_data['Date'] = [d.date() for d in excel_data['Date']]
-        excel_data['Time'] = [pd.to_datetime(d, infer_datetime_format=True).time() if type(d) == str else d
+        excel_data['Time'] = [pd.to_datetime(d, format=' %H:%M:%S.%f').time() if type(d) == str and d.startswith(' ')
+                              else pd.to_datetime(d, format='%H:%M:%S.%f').time() if type(d) == str else d
                               for d in excel_data['Time']]
 
     # Add column with date and time concatenated:
     excel_data['datetime'] = excel_data.apply(lambda r: datetime.combine(r['Date'], r['Time']), 1)
-
+    print(excel_data)
     return excel_data
 
 

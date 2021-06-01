@@ -54,7 +54,7 @@ def detect_video(source, model, image_size):
 
 if __name__ == "__main__":
     class_names = {0: "FJOK", 1: "NONE"}
-    exp_dir = os.path.abspath(r'runs/Varying layers and filters/71')
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/117')
     with open(exp_dir+r'/config.json') as f:
         img_size = tuple(json.load(f)['image_size']['py/tuple'])
     model = tf.keras.models.load_model(exp_dir+'/saved_model')

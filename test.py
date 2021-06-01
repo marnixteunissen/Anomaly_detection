@@ -53,4 +53,4 @@ if __name__ == "__main__":
 
     model_load = tf.keras.models.load_model(exp_dir+'/saved_model')
     evaluate_network(model_load, data_dir, img_size)
-    eval_show_false(model_load, data_dir, img_size, save_dir=exp_dir, save_false=True)
+    # eval_show_false(model_load, data_dir, img_size, save_dir=exp_dir, save_false=True)
