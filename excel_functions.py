@@ -39,13 +39,13 @@ def extract_excel_data(project, classes='Field Joint'):
     return excel_data
 
 
-def extract_video_events(excel_data, video_folder, static_offset=0.000):
+def extract_video_events(excel_data, video, static_offset=0.000):
     '''
     Extracts the timestamps with labels from the events sheet.
     :param excel_data:      Pandas DataFrame (not dict of DataFrames)
                             Data extracted from the excel sheet with the
                             extract_excel_data function, one label only.
-    :param video_folder:    Path string
+    :param video:    Path string
                             Path to folder where video feeds are located
     :param static_offset:   float
                             offset in seconds
@@ -54,28 +54,33 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
     '''
 
     # Reading timestamp from directory name
-    if video_folder.endswith('.mp4'):
-        time_string = video_folder.split('@')[0]
-    elif video_folder.split('_')[-1].isnumeric():
-        time_string = video_folder.split('DATA_')[-1]
+    if video.endswith('.mp4'):
+        file = True
+        time_string = os.path.split(video)[-1].split('@')[0].split()[0]
+    elif video.split('_')[-1].isnumeric():
+        time_string = os.path.split(video)[-1].split('DATA_')[-1]
+        file = False
+    else:
+        print('Check source input, time string not found in filename')
+        raise ReferenceError('File path not consistent with project structure')
+
     # Extract the timestamp of the start and end of the video from the filename:
     first_stamp = pd.to_datetime(time_string, format="%Y%m%d%H%M%S%f")
-    video_file = [x for x in os.listdir(video_folder) if x.endswith('.mp4')][0]
+    if file:
+        video_file = video
+    else:
+        video_file = [x for x in os.listdir(video) if x.endswith('.mp4')][0]
 
-    cap = cv2.VideoCapture(os.path.join(video_folder, video_file))
+    cap = cv2.VideoCapture(os.path.join(video, video_file))
     assert(cap.isOpened())
     fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     total_sec = float(total_frames) / float(fps)
-    last_stamp = first_stamp + timedelta(seconds=total_sec)
+    last_stamp = (first_stamp + timedelta(seconds=total_sec))
 
     # Create pandas DataFrame with DateTime and labels from Secondary Code
     # for all events in excel_data:
-    print(excel_data)
-    print(first_stamp, last_stamp)
-    timestamps = excel_data[(first_stamp <= excel_data['datetime']) &
-                            (excel_data['datetime'] <= last_stamp)][['datetime', 'Secondary Code']]
-    print(timestamps)
+    timestamps = excel_data[((first_stamp <= excel_data['datetime']) & (excel_data['datetime'] <= last_stamp))][['datetime', 'Secondary Code']]
     # Calculating elapsed time in video
     offset = timedelta(seconds=static_offset)
     timestamps['Video Stamp'] = (timestamps['datetime'] - first_stamp + offset)
@@ -90,9 +95,7 @@ if __name__ == "__main__":
     dir = os.getcwd()
     excel = extract_excel_data(r'E:\Data\Sur de Texas')
     print(excel)
-    data_points = extract_video_events(excel,
-                                       r'E:\Data\Sur de Texas\Video\DATA_20180322211350030',
-                                       static_offset=0.000)
+    data_points = extract_video_events(excel, r'E:\Data\Sur de Texas\Video\DATA_20180322211350030', static_offset=0.000)
     print(data_points)
 
 

@@ -91,6 +91,17 @@ def create_dataset(project,
     print('Data-set created for project', project)
 
 
+def delays():
+    delays = {'LingShui': 1.900,
+              'Troll': 1.550,
+              'Turkstream': 0.500,
+              'Baltic Connector': 0.000,
+              'Noble Tamar': 2.850,
+              'Nordstream': 1.200,
+              'Sur de Texas': 0.000}
+    return delays
+
+
 if __name__ == "__main__":
     # TODO: add parser arguments for commandline running
     # Delay LingShui:       1.900
