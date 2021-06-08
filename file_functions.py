@@ -22,9 +22,13 @@ def ch(project, channels):
 
     # Each project has the channels distributed in a different way:
     proj_ch = pd.DataFrame({'POS': ['LEFT', 'TOP', 'RIGHT'],
-                             'LingShui':    [3, 2, 4],
-                             'Troll':       [1, 2, 3],
-                             'Turkstream':  [3, 2, 4]})
+                            'LingShui':                     [3, 2, 4],
+                            'Troll':                        [1, 2, 3],
+                            'Turkstream':                   [3, 2, 4],
+                            'Baltic Connector':             [2, 1, 3],
+                            'Noble Tamar':                  [1, 2, 3],
+                            'Nordstream':                   [1, 2, 3],
+                            'Sur de Texas':                 [1, 2, 3]})
     if not type(channels) == list:
         channels = [channels]
     # create a list with channel numbers
@@ -75,13 +79,16 @@ def train_test_split(project_dir, test_split=0.2, startstr='Video', part=1.0):
                         Two listst of video directory names, training data, testing data
     """
     for entry in os.listdir(project_dir):
-        if entry.startswith(startstr) or entry.startswith('video') or entry.startswith('Video'):
+        if entry.lower().startswith(startstr) or entry.lower().startswith('video'):
             video_dir = os.path.join(project_dir, entry)
+        else:
+            video_dir = None
+
     if video_dir is not None:
         data_dirs = os.listdir(video_dir)
         data_dirs = [os.path.join(video_dir, x) for x in data_dirs if 'DATA' in x]
     else:
-        raise FileNotFoundError("No folder starting with 'Video', 'video' or specified string was found")
+        raise FileNotFoundError("No folder starting with 'Video', or specified string was found")
 
     random.shuffle(data_dirs)
     nr_used = int(part * len(data_dirs))

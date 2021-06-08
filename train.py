@@ -266,14 +266,17 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
         i = i+1
 
 
-
 if __name__ == "__main__":
-    layersvgg = [6, 5]
-    filtersvgg = [[16, 32, 64, 128, 256, 512], [32, 64, 128, 256, 512]]
-    layers = [10]
-    filters = [128]
+    layersvgg = [5]
+    filtersvgg = [[64, 128, 256, 512, 512]]
+    layers = [8]
+    filters = [64]
+    CNN = True
+    VGG = False
 
-    # run_layer_filter_experiments(layers, filters, (640, 360), batch_size=8,
-    #                              data_dir=r'E:\Anomaly_detection', epochs=15)
-    run_VGG_experiments(layersvgg, filtersvgg, (640, 360), batch_size=8,
-                                 data_dir=r'E:\Anomaly_detection', epochs=10)
+    if CNN:
+        run_layer_filter_experiments(layers, filters, (640, 360), batch_size=32,
+                                     data_dir=r'E:\Anomaly_detection', epochs=10)
+    if VGG:
+        run_VGG_experiments(layersvgg, filtersvgg, (640, 360), batch_size=8,
+                            data_dir=r'E:\Anomaly_detection', epochs=10)
