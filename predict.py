@@ -6,6 +6,7 @@ import json
 import cv2
 import models
 import data_processing
+import excel_functions as ex
 
 
 def draw_label(img, text):
@@ -17,7 +18,7 @@ def draw_label(img, text):
     return cv2.putText(img, text, org, font, fontScale, fontColor, thickness, cv2.LINE_AA)
 
 
-def detect_video(source, model, image_size):
+def detect_video(source, model, image_size, conf=0.70):
     class_names = {0: "FJOK", 1: "NONE"}
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
@@ -36,8 +37,59 @@ def detect_video(source, model, image_size):
         frame_prob = tf.nn.softmax(pred).numpy()[0]
         prob['FJOK'].append(frame_prob[0])
         prob['NONE'].append(frame_prob[1])
-        label = class_names[np.argmax(frame_prob)]
-        frame = draw_label(frame, (label) )#  + '({}%)'.format(prob * 100)))
+        if frame_prob[0] >= conf:
+            label = 'FJOK'
+        elif frame_prob[1] >= conf:
+            label = 'NONE'
+        else:
+            label = ''
+        # label = class_names[np.argmax(frame_prob)]
+
+        frame = draw_label(frame, label)
+        cv2.imshow('Feed', frame)
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+    plt.figure()
+    plt.title("Probabilities")
+    plt.plot(range(len(prob['FJOK'])), prob['FJOK'], label="Field Joint")
+    plt.plot(range(len(prob['NONE'])), prob['NONE'], label="None")
+    plt.xlabel("Frame")
+    plt.ylabel("class probability")
+    plt.legend()
+    plt.show()
+
+
+def plot_detect_video(source, project, model, image_size):
+    class_names = {0: "FJOK", 1: "NONE"}
+    excel = ex.extract_excel_data(project)
+    vid_events = ex.extract_video_events(excel,)
+    cap = cv2.VideoCapture(source)
+    if not cap.isOpened():
+        print("Video not found")
+        exit()
+    prob = {'FJOK': [], 'NONE': []}
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
+        model_input = tf.expand_dims(cv2.resize(frame, image_size), 0)
+
+        # Run inference on frame:
+        pred = model(model_input)
+        frame_prob = tf.nn.softmax(pred).numpy()[0]
+        prob['FJOK'].append(frame_prob[0])
+        prob['NONE'].append(frame_prob[1])
+        if frame_prob[0] >= conf:
+            label = 'FJOK'
+        elif frame_prob[1] >= conf:
+            label = 'NONE'
+        else:
+            label = ''
+        # label = class_names[np.argmax(frame_prob)]
+
+        frame = draw_label(frame, label)
         cv2.imshow('Feed', frame)
         if cv2.waitKey(1) == ord('q'):
             break
@@ -53,14 +105,16 @@ def detect_video(source, model, image_size):
 
 
 if __name__ == "__main__":
+    dir = os.getcwd()
     class_names = {0: "FJOK", 1: "NONE"}
     exp_dir = os.path.abspath(r'runs/Varying layers and filters/117')
-    with open(exp_dir+r'/config.json') as f:
-        img_size = tuple(json.load(f)['image_size']['py/tuple'])
-    model = tf.keras.models.load_model(exp_dir+'/saved_model')
 
-    detect_video(r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data\video\20200423160203385@MainDVR_Ch2_Trim.mp4',
-                 model, img_size)
+    with open(exp_dir + r'/config.json') as f:
+        img_size = tuple(json.load(f)['image_size']['py/tuple'])
+
+    model = tf.keras.models.load_model(exp_dir+'/saved_model')
+    video = os.path.join(dir, 'data', 'video', '20200423160203385@MainDVR_Ch2_Trim.mp4')
+    detect_video(video, model, img_size)
 
     # model = models.build_conv_network(layers, filters)
     # model.load_weights(r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\runs\Varying layers and filters\20\weights')

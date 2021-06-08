@@ -54,8 +54,10 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
     '''
 
     # Reading timestamp from directory name
-    time_string = video_folder.split('DATA_')[-1]
-
+    if video_folder.endswith('.mp4'):
+        time_string = video_folder.split('@')[0]
+    elif video_folder.split('_')[-1].isnumeric():
+        time_string = video_folder.split('DATA_')[-1]
     # Extract the timestamp of the start and end of the video from the filename:
     first_stamp = pd.to_datetime(time_string, format="%Y%m%d%H%M%S%f")
 
