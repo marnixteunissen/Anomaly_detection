@@ -21,21 +21,21 @@ def extract_excel_data(project, classes='Field Joint'):
             excel_file = os.path.join(project, file)
 
     # Select columns to import:
-    columns = ['Date', 'Time', 'KP(km)', 'Primary Code', 'Secondary Code']
+    columns = ['Date', 'Time', 'Primary Code', 'Secondary Code']
     # Opening the Datasheet as DateFrame(s)
     excel_data = pd.read_excel(excel_file, sheet_name=classes, usecols=columns)
-    print(type(excel_data['Time'][0]))
-    print(type(excel_data['Time'][75000]))
 
     if project.endswith('Turkstream'):
         excel_data['Date'] = [d.date() for d in excel_data['Date']]
-        excel_data['Time'] = [pd.to_datetime(d, format=' %H:%M:%S.%f').time() if type(d) == str and d.startswith(' ')
-                              else pd.to_datetime(d, format='%H:%M:%S.%f').time() if type(d) == str else d
-                              for d in excel_data['Time']]
+
+    excel_data['Time'] = [pd.to_datetime(d, format=' %H:%M:%S.%f').time() if type(d) == str and d.startswith(' ')
+                          else pd.to_datetime(d, format='%H:%M:%S.%f').time() if type(d) == str else d
+                          for d in excel_data['Time']]
+
+    excel_data['Secondary Code'] = ['FJ' + code if len(code) < 4 else code for code in excel_data['Secondary Code']]
 
     # Add column with date and time concatenated:
     excel_data['datetime'] = excel_data.apply(lambda r: datetime.combine(r['Date'], r['Time']), 1)
-    print(excel_data)
     return excel_data
 
 
@@ -58,10 +58,10 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 
     # Extract the timestamp of the start and end of the video from the filename:
     first_stamp = pd.to_datetime(time_string, format="%Y%m%d%H%M%S%f")
-
     video_file = [x for x in os.listdir(video_folder) if x.endswith('.mp4')][0]
 
     cap = cv2.VideoCapture(os.path.join(video_folder, video_file))
+    assert(cap.isOpened())
     fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     total_sec = float(total_frames) / float(fps)
@@ -69,9 +69,11 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 
     # Create pandas DataFrame with DateTime and labels from Secondary Code
     # for all events in excel_data:
+    print(excel_data)
+    print(first_stamp, last_stamp)
     timestamps = excel_data[(first_stamp <= excel_data['datetime']) &
                             (excel_data['datetime'] <= last_stamp)][['datetime', 'Secondary Code']]
-
+    print(timestamps)
     # Calculating elapsed time in video
     offset = timedelta(seconds=static_offset)
     timestamps['Video Stamp'] = (timestamps['datetime'] - first_stamp + offset)
@@ -84,10 +86,12 @@ def extract_video_events(excel_data, video_folder, static_offset=0.000):
 
 if __name__ == "__main__":
     dir = os.getcwd()
-    print(dir)
-    excel = extract_excel_data(dir + r'\data\Turkstream')
-
-
+    excel = extract_excel_data(r'E:\Data\Sur de Texas')
+    print(excel)
+    data_points = extract_video_events(excel,
+                                       r'E:\Data\Sur de Texas\Video\DATA_20180322211350030',
+                                       static_offset=0.000)
+    print(data_points)
 
 
 

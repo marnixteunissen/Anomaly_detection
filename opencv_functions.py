@@ -56,6 +56,7 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
 
     print("Opening", os.path.join(video_dir, video_file))
     cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
+    assert cap.isOpened()
 
     for (time_stamp, code, sample_nr) in tqdm(zip(time_stamps, codes, sample_nrs), total=len(time_stamps)):
         cap.set(cv2.CAP_PROP_POS_MSEC, int(time_stamp))
@@ -63,6 +64,7 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
         if success:
             save_path = os.path.join(save_dir, code, (str(sample_nr).zfill(6) + '_' + project + '.png'))
             cv2.imwrite(save_path, image)
+
             nr_success = nr_success + 1
             if show:
                 cv2.imshow("saved image:", image)
@@ -75,7 +77,7 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
 
 
 def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
-                           delay=0.000, nr_samples=5, interval=4000, channel=2, show=False):
+                           delay=0.000, nr_samples=5, interval=3000, channel=2, show=False):
     """
     Extracts all the frames at all event times in given video for all given channels
     :param project:     string
@@ -127,10 +129,11 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     for n in range(len(time_stamps)-1):
         # set range for negative samples:
         # min = stamp n + 4 sec, max = stamp (n+1) - 4 sec
-        ms_min = min(time_stamps[n] - interval, time_stamps[n+1] + interval)
-        ms_max = max((time_stamps[n] - interval, time_stamps[n+1] + interval))
+        ms_min = min(time_stamps[n], time_stamps[n+1]) + interval
+        ms_max = max(time_stamps[n], time_stamps[n+1]) - interval
         for i in range(nr_samples-1):
-            neg_stamps.append(random.randint(ms_min, ms_max))
+            if ms_min < ms_max:
+                neg_stamps.append(random.randint(ms_min, ms_max))
 
     code = 'NONE'
     sample_nrs = [(x + excel_data.index[-1] + 1) for x in range(len(neg_stamps))]
@@ -193,12 +196,11 @@ def extract_frame(video_file, time=500):
 if __name__ == "__main__":
     dir = os.getcwd()
     print("working directory: ", dir)
-    video = (dir + r"\data\video\20200423213211791@MainDVR_Ch2.mp4")
-
-    excel = excel_f.extract_excel_data(dir + r'\data\Troll', classes='Field Joint')
-    chann = [1, 2, 3]
-    extract_all_pos_frames(dir + r'\data\Troll\video\DATA_20200423140158475', excel, dir + r'\data\Samples',
-                           delay=0.500, channels=chann)
-    extract_all_neg_frames(dir + r'\data\Troll\video\DATA_20200423140158475', excel, dir + r'\data\Samples',
-                           delay=0.500, channels=chann)
+    video = (dir + r"\data\Turkstream\Video_PL4_KP475-500\DATA_20180115220421906")
+    excel = excel_f.extract_excel_data(dir + r'\data\Turkstream')
+    chann = 2
+    extract_all_pos_frames('Turkstream', video, excel, out_dir=dir + r'\data\Samples',
+                           delay=0.000, channel=chann, show=True)
+    # extract_all_neg_frames(dir + r'\data\Troll\video\DATA_20200423140158475', excel, dir + r'\data\Samples',
+    #                        delay=0.500, channels=chann)
 

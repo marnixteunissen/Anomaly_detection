@@ -16,8 +16,8 @@ def create_dataset(project,
                    root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
     # Check if project is available:
-    if not project in ['LingShui', 'Troll', 'Turkstream']:
-        raise FileNotFoundError('Project files were not found in %s'.format(root_dir))
+    if not project in ['LingShui', 'Troll', 'Turkstream', 'Nordstream', 'Noble Tamar', 'Baltic Connector', 'Sur de Texas']:
+        raise FileNotFoundError('Project files were not found in {}'.format(root_dir))
 
     # Getting correct channel names:
     channels, ch_str = ch(project, channel_idx)
@@ -93,11 +93,29 @@ def create_dataset(project,
 
 if __name__ == "__main__":
     # TODO: add parser arguments for commandline running
-    # Delay LingShui:   1.900
-    # Delay Troll:      1.550
-    # Delay Turkstream: ???
-    root = os.getcwd() + r'\data'
-    create_dataset('Troll', delay=1.550, neg_samples=6,
-                   root_dir=root, use_perc=0.1)
-    create_dataset('LingShui', delay=1.900, neg_samples=6,
-                   root_dir=root)
+    # Delay LingShui:       1.900
+    # Delay Troll:          1.550
+    # Delay Turkstream:     0.500
+    # Delay Baltic:         ...
+    # Delay Noble:          ...
+    # Delay Nordstream:     ...
+    # Delay Sur de Texas:   ...
+    delays = {'LingShui':                     1.900,
+              'Troll':                        1.550,
+              'Turkstream':                   0.500,
+              'Baltic Connector':             0.000,
+              'Noble Tamar':                  2.850,
+              'Nordstream':                   1.200,
+              'Sur de Texas':                 0.000}
+
+    root = os.getcwd()
+    projects = ['Sur de Texas']
+
+    data_dir = r'E:\Data'
+    for project in projects:
+        delay = delays[project]
+        create_dataset(project,
+                       delay=delay,
+                       neg_samples=0,
+                       root_dir=data_dir,
+                       out_dir=r'E:\Anomaly_detection\test_texas')
