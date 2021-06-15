@@ -71,17 +71,21 @@ class FileVideoStream:
         self.stopped = True
 
 
-def run_detection_multi_thread(video_file, model_dir, project, save_dir=None, save=True, window=60, plot=False, skip=5):
+def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=None, save=True, plot=False):
     # Setting basic variables
-    delays = Delays()
-    offset = - delays[project]
-    # TODO: automatically find the project from the video
-    # Get event information from excel
-    print("Extracting excel data")
-    excel = ex.extract_excel_data(r'data/' + project)
+    if project is not None:
+
+        delays = Delays()
+        offset = - delays[project]
+        # TODO: automatically find the project from the video
+        # Get event information from excel
+        print("Extracting excel data")
+        excel = ex.extract_excel_data(r'data/' + project)
+        vid_events = ex.extract_video_events(excel, video_file, offset)
+
     time_string = os.path.split(video)[-1].split('@')[0].split()[0]
     first_stamp = pd.to_datetime(time_string, format="%Y%m%d%H%M%S%f") - datetime.timedelta(seconds=offset)
-    vid_events = ex.extract_video_events(excel, video_file, offset)
+
 
     print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
@@ -166,7 +170,7 @@ if __name__ == "__main__":
     projects = ["Troll", "Turkstream", "LingShui", "Nordstream", "Noble Tamar"]
 
     if opt.project is None:
-        project = "Troll"
+        project = None
     elif opt.project not in projects:
         raise ValueError("unknown project specified, check spelling")
     else:
