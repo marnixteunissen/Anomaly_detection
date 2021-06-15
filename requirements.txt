@@ -8,3 +8,5 @@ Pillow >= 8.0
 matplotlib
 tensorflow-datasets
 sacred
+scipy
+imutils

@@ -7,6 +7,7 @@ import json
 import cv2
 import models
 import csv
+from scipy.ndimage.filters import uniform_filter1d
 import data_processing
 from create_dataset import delays as Delays
 import excel_functions as ex
@@ -63,7 +64,7 @@ def detect_video(source, model, image_size, conf=0.70):
     plt.show()
 
 
-def plot_detect_video(source, project, model, image_size, dir):
+def plot_detect_video(source, project, model, image_size, dir, window=60):
     class_names = {0: "FJOK", 1: "NONE"}
     delays = Delays()
     offset = - delays[project]
@@ -71,6 +72,8 @@ def plot_detect_video(source, project, model, image_size, dir):
     vid_events = ex.extract_video_events(excel, source, offset)
     cap = cv2.VideoCapture(source)
     fps = cap.get(cv2.CAP_PROP_FPS)
+    print(fps)
+    print(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
     if not os.path.exists(dir):
         os.makedirs(dir)
 
@@ -96,14 +99,16 @@ def plot_detect_video(source, project, model, image_size, dir):
     else:
         df = pd.read_csv(dir + '/prediction.csv')
 
-    df['rolling'] = df.FJOK.rolling(60).mean()
+    df['rolling'] = df.FJOK.rolling(window).mean()
+    filtered = uniform_filter1d(df.FJOK, size=window)
     print(vid_events['ms in video'])
+    # frames_plot = vid_events['ms in video']
 
     plt.figure()
     plt.title("Probabilities")
     # plt.plot(range(len(df['FJOK'])), df['FJOK'], label="Field Joint")
     plt.plot(range(len(df['rolling'])), df['rolling'], label='Rolling Average')
-    plt.vlines((vid_events['ms in video']*0.03).round().astype(int), 0, 1, linestyles='dashed', colors='r')
+    plt.vlines((vid_events['ms in video']*(fps/1000)).astype(int), 0, 1, linestyles='dashed', colors='r')
     plt.xlabel("Frame")
     plt.ylabel("class probability")
     plt.legend()
@@ -113,13 +118,13 @@ def plot_detect_video(source, project, model, image_size, dir):
 if __name__ == "__main__":
     dir = os.getcwd()
     class_names = {0: "FJOK", 1: "NONE"}
-    exp_dir = os.path.abspath(r'runs/Varying layers and filters/62')
+    exp_dir = os.path.abspath(r'runs/Varying layers and filters/121')
 
     with open(exp_dir + r'/config.json') as f:
         img_size = tuple(json.load(f)['image_size']['py/tuple'])
 
-    project = 'Troll'
+    project = 'Turkstream'
     model = tf.keras.models.load_model(exp_dir+'/saved_model')
-    video = os.path.join(dir, 'data', 'video', '20200423213211791@MainDVR_Ch2_Trim.mp4')
-    plot_detect_video(video, project, model, img_size, r'data/video/predictions_3')
+    video = os.path.join(dir, 'data', 'video', '20180115233422036@DVR-SD-01_Ch2.mp4')
+    plot_detect_video(video, project, model, img_size, r'data/video/predictions_4')
 

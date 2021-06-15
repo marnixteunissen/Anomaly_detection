@@ -86,7 +86,7 @@ def extract_video_events(excel_data, video, static_offset=0.000):
     timestamps['Video Stamp'] = (timestamps['datetime'] - first_stamp + offset)
     timestamps['ms in video'] = (timestamps['Video Stamp'].dt.total_seconds() * 1000).astype('int')
 
-    data_points = timestamps[['Video Stamp', 'ms in video', 'Secondary Code']]
+    data_points = timestamps[['datetime', 'Video Stamp', 'ms in video', 'Secondary Code']]
 
     return data_points
 
