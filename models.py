@@ -16,7 +16,7 @@ def build_conv_network(num_layers, filters, image_size=(640, 360), kernel=3, cla
     model.add(layers.BatchNormalization(input_shape=(image_size[1], image_size[0], 3)))
     # construct network:
     for i in range(num_layers):
-        if i % 2 == 0:
+        if i % kernel == 0:
             model.add(layers.Conv2D(filters, kernel, activation=activation))
             model.add(layers.MaxPooling2D())
         else:
@@ -35,7 +35,7 @@ def build_conv_network(num_layers, filters, image_size=(640, 360), kernel=3, cla
     return model
 
 
-def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=3, classes=2, activation='relu', optimizer='adam'):
+def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=5, classes=2, activation='relu', optimizer='adam'):
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
@@ -44,7 +44,7 @@ def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=3, class
     # construct network:
     for i in range(num_layers):
         model.add(layers.Conv2D(filters[i], kernel))
-        model.add(layers.Conv2D(filters[i], kernel))
+        model.add(layers.Conv2D(filters[i], kernel-2))
         model.add(layers.MaxPooling2D())
 
     model.add(layers.Flatten())

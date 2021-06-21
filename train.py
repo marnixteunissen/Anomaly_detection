@@ -36,7 +36,7 @@ def save_losses(history, save_path):
     plt.clf()
 
 
-def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), epochs=3):
+def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(), epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
     train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
@@ -60,6 +60,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         batch_size = []
         optimizer = 'adam'
         epochs = []
+        kernel = []
 
 
     @ex.capture
@@ -68,21 +69,23 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
         return train_data, val_data
 
     @ex.capture
-    def build_model(n_layers, filters, image_size):
-        model = models.build_conv_network(n_layers, filters, image_size=image_size)
+    def build_model(n_layers, filters, image_size, kernel):
+        model = models.build_conv_network(n_layers, filters, kernel=kernel, image_size=image_size)
         return model
 
     @ex.capture
     def train(model, train_ds, val_ds, epochs):
         # create callback to save best model:
         save_best = tf.keras.callbacks.ModelCheckpoint(
-            filepath=os.path.join(ex.observers[0].dir, 'weights/best'),
+            filepath=os.path.join(ex.observers[0].dir, 'saved_model/best'),
             save_weights_only=True,
             monitor='val_accuracy',
             mode='max',
             save_best_only=True)
+        # add early stopping criterion:
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=3)
         # start training:
-        history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
+        history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
 
         return history
@@ -129,20 +132,22 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
 
     i = 1
     experiments = {}
-    experiment_list = list(itertools.product(layers, filters))
+    experiment_list = list(itertools.product(layers, filters, kernels))
     experiments['layers'] = layers
     experiments['filters'] = filters
+    experiments['kernels'] = kernels
 
 
     results = {}
 
-    for l, f in zip(experiments['layers'], experiments['filters']):
+    for l, f, k in zip(experiments['layers'], experiments['filters'], experiments['kernels']):
         print('layers: {}, filters: {}'.format(l, f))
         conf = {'n_layers': int(l),
                 'filters': f,
                 'image_size': image_size,
                 'batch_size': batch_size,
-                'epochs': epochs}
+                'epochs': epochs,
+                'kernel': k}
 
         exp_finish = ex.run(config_updates=conf)
 
@@ -151,7 +156,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, data_d
 
         i = i+1
 
-def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
+def run_VGG_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(), optimizer='adam', epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
     train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
@@ -176,7 +181,6 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
         optimizer = 'adam'
         epochs = []
 
-
     @ex.capture
     def data(image_size, batch_size):
         train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size, image_size=image_size)
@@ -191,13 +195,15 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
     def train(model, train_ds, val_ds, epochs):
         # create callback to save best model:
         save_best = tf.keras.callbacks.ModelCheckpoint(
-            filepath=os.path.join(ex.observers[0].dir, 'weights/best'),
+            filepath=os.path.join(ex.observers[0].dir, 'saved_model/best'),
             save_weights_only=True,
             monitor='val_accuracy',
             mode='max',
             save_best_only=True)
+        # create callback for early stopping:
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=3)
         # start training:
-        history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
+        history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
 
         return history
@@ -246,17 +252,19 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
     experiments = {}
     experiments['layers'] = layers
     experiments['filters'] = filters
+    experiments['kernels'] = kernels
 
 
     results = {}
 
-    for l, f in zip(experiments['layers'], experiments['filters']):
+    for l, f, k in zip(experiments['layers'], experiments['filters'], experiments['kernels']):
         print('layers: {}, filters: {}'.format(l, f))
         conf = {'n_layers': int(l),
                 'filters': f,
                 'image_size': image_size,
                 'batch_size': batch_size,
-                'epochs': epochs}
+                'epochs': epochs,
+                'kernel': k}
 
         exp_finish = ex.run(config_updates=conf)
 
@@ -267,16 +275,17 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, data_dir=None, 
 
 
 if __name__ == "__main__":
-    layersvgg = [5]
-    filtersvgg = [[64, 128, 256, 512, 512]]
-    layers = [8]
+    layersvgg = [5, 6]
+    filtersvgg = [[64, 128, 256, 512, 512], [64, 128, 256, 512, 512]]
+    layers = [10]
     filters = [64]
+    kernels = [5, 7]
     CNN = True
-    VGG = False
+    VGG = True
 
     if CNN:
-        run_layer_filter_experiments(layers, filters, (640, 360), batch_size=32,
-                                     data_dir=r'E:\Anomaly_detection', epochs=10)
+        run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=32,
+                                     data_dir=r'E:\Anomaly_detection', epochs=2)
     if VGG:
         run_VGG_experiments(layersvgg, filtersvgg, (640, 360), batch_size=8,
                             data_dir=r'E:\Anomaly_detection', epochs=10)
