@@ -143,7 +143,10 @@ def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=Non
 
     print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
-    model = tf.keras.models.load_model(model_dir + '/saved_model')
+    if 'best' in os.listdir(model_dir + '/saved_model'):
+        model = tf.keras.models.load_model(model_dir + '/saved_model/best')
+    else:
+        model = tf.keras.models.load_model(model_dir + '/saved_model')
     fps = fvs.fps
 
     # TODO: automation of creating and predicting mor classes here
