@@ -74,7 +74,6 @@ class FileVideoStream:
 def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=None, save=True, plot=False):
     # Setting basic variables
     if project is not None:
-
         delays = Delays()
         offset = - delays[project]
         # TODO: automatically find the project from the video
@@ -82,10 +81,11 @@ def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=Non
         print("Extracting excel data")
         excel = ex.extract_excel_data(r'data/' + project)
         vid_events = ex.extract_video_events(excel, video_file, offset)
+    else:
+        offset = 0
 
     time_string = os.path.split(video)[-1].split('@')[0].split()[0]
     first_stamp = pd.to_datetime(time_string, format="%Y%m%d%H%M%S%f") - datetime.timedelta(seconds=offset)
-
 
     print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
@@ -115,8 +115,6 @@ def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=Non
     prob = pd.DataFrame(prob_dict)
     end = time.time()
     print("execution time: {}".format(end-start))
-    # calculating running mean
-    # prob['FJOK_runningmean'] = prob.FJOK.rolling(window).mean()
 
     # saving findings to csv
     vid_name = os.path.split(video_file)[-1].split('.')[0]
@@ -131,8 +129,6 @@ def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=Non
         plt.figure()
         plt.title("Probabilities")
         plt.plot(prob.timestamp, prob.FJOK, label='Prediction Field Joint')
-        # plt.plot(range(len(prob['FJOK_runningmean'])), prob['FJOK_runningmean'], label='Rolling Average')
-        # plt.vlines((vid_events['ms in video'] * (fps / 1000)).astype(int), 0, 1, linestyles='dashed', colors='r')
         plt.vlines(vid_events['datetime'], 0, 1, linestyles='dashed', colors='r', label="Event from listing")
         plt.xlabel("Frame")
         plt.ylabel("class probability")
@@ -146,8 +142,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default=None, help="Full path to the directory "
                                                                 "which contains the 'saved_model' directory",
                         required=True)
-    parser.add_argument('--project', type=str, default=None, help='Name of the project the video belongs to',
-                        required=True)
+    parser.add_argument('--project', type=str, default=None, help='Name of the project the video belongs to')
     parser.add_argument('--save', type=bool, default=True, help='Choice to store the predictions as a .csv file')
     parser.add_argument('--save_dir', type=str, default=None, help='Full path to location to store .csv file')
     parser.add_argument('--show', type=bool, default=False, help='choice to show plot of predictions')
@@ -184,4 +179,4 @@ if __name__ == "__main__":
         os.makedirs(opt.save_dir)
         save_dir = opt.save_dir
 
-    run_detection_multi_thread(video, model_dir, project, save_dir=save_dir, save=opt.save, window=60, plot=opt.show)
+    run_detection_multi_thread(video, model_dir, project, save_dir=save_dir, save=opt.save, plot=opt.show)
