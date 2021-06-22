@@ -16,12 +16,15 @@ import argparse
 class FileVideoStream:
     def __init__(self, path, model_dir, queueSize=5):
         self.count = 0
+        self.frame_skip = 10
+        # Counting total frames to keep track of progress
+        self.frame_count = self.count_frames(path)
 
         # Opening video stream
         self.stream = cv2.VideoCapture(path)
         self.stopped = False
         self.fps = self.stream.get(cv2.CAP_PROP_FPS)
-        self.step = int(self.fps/10)
+        self.step = int(self.fps/self.frame_skip)
 
         # Creating Queue
         self.Q = Queue(maxsize=queueSize)
@@ -70,6 +73,57 @@ class FileVideoStream:
         # indicate that the thread should be stopped
         self.stopped = True
 
+    def count_frames(self, path, override=False):
+        # grab a pointer to the video file and initialize the total
+        # number of frames read
+        video = cv2.VideoCapture(path)
+        total = 0
+
+        # if the override flag is passed in, revert to the manual
+        # method of counting frames
+        if override:
+            total = count_frames_manual(video)
+
+        # otherwise, let's try the fast way first
+        else:
+            # lets try to determine the number of frames in a video
+            # via video properties; this method can be very buggy
+            # and might throw an error based on your OpenCV version
+            # or may fail entirely based on your which video codecs
+            # you have installed
+            try:
+                    total = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+            # uh-oh, we got an error -- revert to counting manually
+            except:
+                total = count_frames_manual(video)
+
+        # release the video file pointer
+        video.release()
+
+        # return the total number of frames in the video
+        return total
+
+    def count_frames_manual(video):
+        # initialize the total number of frames read
+        total = 0
+
+        # loop over the frames of the video
+        while True:
+            # grab the current frame
+            (grabbed, frame) = video.read()
+         
+            # check to see if we have reached the end of the
+            # video
+            if not grabbed:
+                break
+
+            # increment the total number of frames read
+            total += 1
+
+        # return the total number of frames in the video file
+        return total
+
 
 def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=None, save=True, plot=False):
     # Setting basic variables
@@ -98,6 +152,8 @@ def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=Non
     prob_dict = class_dict
     prob_dict['timestamp'] = []
     start = time.time()
+    skipped_publications = 0
+    publications_to_skip = 20
     while fvs.more():
         # Read input tesnor for model
         model_input, frame_nr = fvs.read()
@@ -111,6 +167,12 @@ def run_detection_multi_thread(video_file, model_dir, project=None, save_dir=Non
         prob_dict['FJOK'].append(pred[0])
         prob_dict['NONE'].append(pred[1])
         prob_dict['timestamp'].append(timestamp)
+        
+        if skipped_publications > (publications_to_skip - 1):
+            print("Progress: {:.2f} %".format((100.0 * frame_nr) / fvs.frame_count))
+            skipped_publications = 0
+        else:
+            skipped_publications += 1
 
     prob = pd.DataFrame(prob_dict)
     end = time.time()
