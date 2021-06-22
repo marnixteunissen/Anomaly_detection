@@ -205,9 +205,9 @@ if __name__ == "__main__":
                                                                 "which contains the 'saved_model' directory",
                         required=True)
     parser.add_argument('--project', type=str, default=None, help='Name of the project the video belongs to')
-    parser.add_argument('--save', type=bool, default=True, help='Choice to store the predictions as a .csv file')
+    parser.add_argument('--save', type=str, default='True', help='Choice to store the predictions as a .csv file')
     parser.add_argument('--save_dir', type=str, default=None, help='Full path to location to store .csv file')
-    parser.add_argument('--show', type=bool, default=False, help='choice to show plot of predictions')
+    parser.add_argument('--show', type=str, default='False', help='choice to show plot of predictions')
     opt = parser.parse_args()
 
     if opt.source is None:
@@ -241,4 +241,7 @@ if __name__ == "__main__":
         os.makedirs(opt.save_dir)
         save_dir = opt.save_dir
 
-    run_detection_multi_thread(video, model_dir, project, save_dir=save_dir, save=opt.save, plot=opt.show)
+    show_output = (opt.show.lower() == 'true')
+    save_output = (opt.save.lower() == 'true')
+
+    run_detection_multi_thread(video, model_dir, project, save_dir=save_dir, save=save_output, plot=show_output)
