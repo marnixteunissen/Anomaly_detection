@@ -78,12 +78,12 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
         # create callback to save best model:
         save_best = tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(ex.observers[0].dir, 'saved_model/best'),
-            save_weights_only=True,
+            save_weights_only=False,
             monitor='val_accuracy',
             mode='max',
             save_best_only=True)
         # add early stopping criterion:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=10)
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
@@ -203,7 +203,7 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, kernels, data_d
             mode='max',
             save_best_only=True)
         # create callback for early stopping:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=10)
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
@@ -324,7 +324,7 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
             mode='max',
             save_best_only=True)
         # create callback for early stopping:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=10)
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
@@ -382,7 +382,6 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
     results = {}
 
     for l, f, b in zip(experiments['layers'], experiments['filters'], experiments['blocks']):
-        print(f)
         assert(len(f) == 2)
         print('blocks: {}, layers: {}, filters: {}'.format(b, l, f))
         conf = {'n_layers': int(l),
@@ -403,25 +402,34 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
 
 
 if __name__ == "__main__":
-    layersvgg = [5, 5]
-    filtersvgg = [[16, 16, 32, 64, 128], [16, 16, 32, 64, 128]]
-    layers = [6]
-    filters = [32]
-    kernels = [7]
+    # CNN parameters
+    layers = [8]
+    filters = [64, 128, 256]
+    kernels = [3]
 
-    num_blocks = [4]
-    num_layers = [3]
-    num_filters = [[32, 64]]
-    CNN = False
-    VGG = False
+    # VGG parameters
+    filtersvgg = [[16, 16, 32, 64, 128], [16, 32, 64, 128, 128], [32, 64, 128, 256, 256], [64, 64, 64, 64, 64, 64, 64]]
+    layersvgg = [len(f) for f in filtersvgg]
+
+    # ResNet parameters
+    num_blocks = [3, 4, 3, 3, 3, 5]
+    num_layers = [3, 3, 4, 4, 5, 3]
+    num_filters = [[32, 64], [32, 64], [32, 64], [16, 32], [16, 32], [16, 32]]
+
+    CNN = True
+    VGG = True
     ResNet = True
-
-    if CNN:
-        run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=32,
-                                     data_dir=r'E:\Anomaly_detection', epochs=20)
-    if VGG:
-        run_VGG_experiments(layersvgg, filtersvgg, kernels=kernels, image_size=(640, 360), batch_size=8,
-                            data_dir=r'E:\Anomaly_detection', epochs=20)
+    epochs = 50
     if ResNet:
         run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
-                               data_dir=r'E:\Anomaly_detection', epochs=20)
+                               data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                               out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+    if CNN:
+        run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=8,
+                                     data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                                     out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+    if VGG:
+        run_VGG_experiments(layersvgg, filtersvgg, kernels=kernels, image_size=(640, 360), batch_size=8,
+                            data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                            out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+
