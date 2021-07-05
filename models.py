@@ -172,7 +172,6 @@ if __name__ == "__main__":
     data_dir = r'E:\Anomaly_detection'
     train_set, val_set = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size=8)
     num_classes = len(train_set.class_names)
-    net_model = NetworkModel()
     input_shape = [360, 640, 3]
     resnet = ResNet(2, 2)
     model = resnet.build_model()

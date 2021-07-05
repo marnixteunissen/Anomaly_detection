@@ -16,7 +16,7 @@ def create_dataset(project,
                    root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
     # Check if project is available:
-    if not project in ['LingShui', 'Troll', 'Turkstream', 'Nordstream', 'Noble Tamar', 'Baltic Connector', 'Sur de Texas']:
+    if project not in delays().keys():
         raise FileNotFoundError('Project files were not found in {}'.format(root_dir))
 
     # Getting correct channel names:
@@ -92,25 +92,18 @@ def create_dataset(project,
 
 
 def delays():
-    delays = {'LingShui': 1.900,
-              'Troll': 1.550,
-              'Turkstream': 0.500,
-              'Baltic Connector': 0.000,
-              'Noble Tamar': 2.850,
-              'Nordstream': 1.200,
-              'Sur de Texas': 0.000}
+    delays = {'LingShui':           1.900,
+              'Troll':              1.550,
+              'Turkstream':         0.500,
+              'Baltic Connector':   0.000,
+              'Noble Tamar':        2.850,
+              'Nordstream':         1.200,
+              'Sur de Texas':       0.000}
     return delays
 
 
 if __name__ == "__main__":
     # TODO: add parser arguments for commandline running
-    # Delay LingShui:       1.900
-    # Delay Troll:          1.550
-    # Delay Turkstream:     0.500
-    # Delay Baltic:         ...
-    # Delay Noble:          ...
-    # Delay Nordstream:     ...
-    # Delay Sur de Texas:   ...
     delays = {'LingShui':                     1.900,
               'Troll':                        1.550,
               'Turkstream':                   0.500,
