@@ -46,19 +46,16 @@ class FileVideoStream:
 
             if not self.Q.full():
                 self.stream.set(1, self.count)
-                batch = []
-                for sample in range(self.batch_size):
-                    # Read the next frame
-                    grabbed, frame = self.stream.read()
-                    if not grabbed:
-                        self.stopped = True
-                        return
-                    frame = resize(frame, self.img_size)
-                    batch.append(frame)
-                    model_input = expand_dims(frame, 0)
 
-                batch = stack(batch)
-                self.Q.put((batch, self.count))
+                # Read the next frame
+                grabbed, frame = self.stream.read()
+                if not grabbed:
+                    self.stopped = True
+                    return
+                frame = resize(frame, self.img_size)
+                model_input = expand_dims(frame, 0)
+
+                self.Q.put((model_input, self.count))
                 self.count += self.step
 
     def read(self):
