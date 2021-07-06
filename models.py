@@ -65,7 +65,7 @@ def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=5, class
 
 
 class ResNet():
-    def __init__(self, num_blocks, num_layers, num_filters=[32, 64], input_shape=[360, 640, 3], activation='relu',
+    def __init__(self, num_blocks, num_layers, num_filters=[32, 64], input_shape=[640, 360, 3], activation='relu',
                  num_classes=2, optimizer='adam'):
         self.activation = activation
         self.num_filters = num_filters
@@ -158,6 +158,7 @@ class ResNet():
         # Last layers:
         x = AveragePooling2D((2, 2), padding='same')(x)
         x = Flatten()(x)
+        x = Dropout(0.1)(x)
         x = Dense(self.num_classes, kernel_initializer='he_normal')(x)
         x = Softmax()(x)
         # Define the model:

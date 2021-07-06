@@ -10,14 +10,14 @@ def create_data_sets(data_dir, channel, mode, batch_size=8, image_size=(640, 360
         validation_split=0.2,
         subset="training",
         seed=123,
-        image_size=(height, width),
+        image_size=(width, height),
         batch_size=batch_size)
     val_ds = preprocessing.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="validation",
         seed=123,
-        image_size=(height, width),
+        image_size=(width, height),
         batch_size=batch_size)
 
     return train_ds, val_ds
@@ -29,7 +29,7 @@ def create_test_set(data_dir, channel, image_size=(640, 360), batch_size=1):
     test_ds = preprocessing.image_dataset_from_directory(
         data_dir,
         seed=123,
-        image_size=(height, width),
+        image_size=(width, height),
         batch_size=batch_size)
 
     return test_ds

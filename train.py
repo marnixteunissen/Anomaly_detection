@@ -37,6 +37,13 @@ def save_losses(history, save_path):
     plt.clf()
 
 
+def create_datasets(data_dir, img_size, batch_size):
+    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size, image_size=img_size)
+    train_data = train_data.prefetch(tf.data.AUTOTUNE)
+    val_data = val_data.prefetch(tf.data.AUTOTUNE)
+    return train_data, val_data
+
+
 def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(), epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
@@ -63,12 +70,6 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
         epochs = []
         kernel = []
 
-
-    @ex.capture
-    def data(image_size, batch_size):
-        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size, image_size=image_size)
-        return train_data, val_data
-
     @ex.capture
     def build_model(n_layers, filters, image_size, kernel):
         model = models.build_conv_network(n_layers, filters, kernel=kernel, image_size=image_size)
@@ -79,12 +80,12 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
         # create callback to save best model:
         save_best = tf.keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(ex.observers[0].dir, 'saved_model/best'),
-            save_weights_only=True,
+            save_weights_only=False,
             monitor='val_accuracy',
             mode='max',
             save_best_only=True)
         # add early stopping criterion:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=10)
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
@@ -113,7 +114,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
     def main():
         # Get data
         print('Creating data-sets...')
-        train_ds, val_ds = data()
+        train_ds, val_ds = create_datasets(data_dir, image_size, batch_size)
 
         # build network
         print('Building model...')
@@ -204,7 +205,7 @@ def run_VGG_experiments(layers, filters, image_size, batch_size, kernels, data_d
             mode='max',
             save_best_only=True)
         # create callback for early stopping:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=10)
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
@@ -325,7 +326,7 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
             mode='max',
             save_best_only=True)
         # create callback for early stopping:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=10)
+        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
         model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
@@ -354,7 +355,7 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
     def main():
         # Get data
         print('Creating data-sets...')
-        train_ds, val_ds = data()
+        train_ds, val_ds = create_datasets(data_dir, image_size, batch_size)
 
         # build network
         print('Building model...')
@@ -383,7 +384,6 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
     results = {}
 
     for l, f, b in zip(experiments['layers'], experiments['filters'], experiments['blocks']):
-        print(f)
         assert(len(f) == 2)
         print('blocks: {}, layers: {}, filters: {}'.format(b, l, f))
         conf = {'n_layers': int(l),
@@ -401,16 +401,14 @@ def run_ResNet_experiments(blocks, layers, filters, image_size, batch_size, kern
         i = i+1
 
 
-def run_precompiled_experiments(model_type, batch_size, image_size=[640, 360, 3], data_dir=None, out_dir=os.getcwd(),
+def run_precompiled_experiments(model_type, batch_size, weights='imagenet', image_size=[640, 360, 3], data_dir=None, out_dir=os.getcwd(),
                         optimizer='adam', epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
-    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
     run_path = os.path.join(out_dir, 'runs')
 
-    ex = Experiment('ResNet architectures')
+    ex = Experiment(model_type)
     ex.observers.append(FileStorageObserver(basedir=os.path.join(run_path, ex.path)))
-    # loss_path = os.path.join(run_path, ex.path, 'losses.png')
 
     @ex.config
     def config():
@@ -420,27 +418,48 @@ def run_precompiled_experiments(model_type, batch_size, image_size=[640, 360, 3]
         data_dir = os.getcwd() + r'\data\data-set'
         train_ds = []
         val_ds = []
+        weights = []
         image_size = []
         batch_size = []
         optimizer = 'adam'
         epochs = []
 
     @ex.capture
-    def data(image_size, batch_size):
-        train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size, image_size=image_size)
-        return train_data, val_data
-
-    @ex.capture
     def build_model(net_architecture):
         if net_architecture == 'DenseNet121':
-            model = tf.keras.applications.densenet.DenseNet121(include_top=False,
-                                                               weights=None,
-                                                               input_shape=(image_size[1],image_size[0], image_size[2]))
+            pre_process = tf.keras.applications.densenet.preprocess_input
+            base_model = tf.keras.applications.densenet.DenseNet121(include_top=False,
+                                                                    weights=weights,
+                                                                    input_shape=image_size)
 
         elif net_architecture == 'DenseNet169':
-            model = tf.keras.applications.densenet.DenseNet169(include_top=False,
-                                                               weights=None,
-                                                               input_shape=(image_size[1],image_size[0], image_size[2]))
+            pre_process = tf.keras.applications.densenet.preprocess_input
+            base_model = tf.keras.applications.densenet.DenseNet169(include_top=False,
+                                                                    weights=weights,
+                                                                    input_shape=image_size)
+
+        elif net_architecture == 'MobileNetV2':
+            pre_process = tf.keras.applications.mobilenet_v2.preprocess_input
+            base_model = tf.keras.applications.MobileNetV2(input_shape=image_size,
+                                                           include_top=False,
+                                                           weights=weights)
+        if weights is not None:
+            base_model.trainable = False
+
+        flatten = tf.keras.layers.Flatten()
+        prediction_layer = tf.keras.layers.Dense(2)
+
+        inputs = tf.keras.Input(shape=(image_size[0], image_size[1], image_size[2]))
+        x = pre_process(inputs)
+        if weights is not None:
+            x = base_model(x, training=False)
+        else:
+            x = base_model(x)
+        x = flatten(x)
+        x = tf.keras.layers.Dropout(0.2)(x)
+        outputs = prediction_layer(x)
+        model = tf.keras.Model(inputs, outputs)
+
         model.compile(optimizer=optimizer, loss=losses.SparseCategoricalCrossentropy(),
                       metrics=['accuracy'])
         model.summary()
@@ -485,7 +504,7 @@ def run_precompiled_experiments(model_type, batch_size, image_size=[640, 360, 3]
     def main():
         # Get data
         print('Creating data-sets...')
-        train_ds, val_ds = data()
+        train_ds, val_ds = create_datasets(data_dir, image_size, batch_size)
 
         # build network
         print('Building model...')
@@ -506,6 +525,7 @@ def run_precompiled_experiments(model_type, batch_size, image_size=[640, 360, 3]
     print()
     conf = {'image_size': image_size,
             'net_architecture': model_type,
+            'weights': weights,
             'batch_size': batch_size,
             'epochs': epochs}
 
@@ -514,32 +534,50 @@ def run_precompiled_experiments(model_type, batch_size, image_size=[640, 360, 3]
     results = exp_finish.result
 
 
-
-
 if __name__ == "__main__":
-    layersvgg = [5, 5]
-    filtersvgg = [[16, 16, 32, 64, 128], [16, 16, 32, 64, 128]]
-    layers = [6]
-    filters = [32]
-    kernels = [7]
+    # CNN parameters
+    layers = [8]
+    filters = [64, 128, 256]
+    kernels = [3]
 
-    num_blocks = [4]
-    num_layers = [3]
-    num_filters = [[32, 64]]
+    # VGG parameters
+    filtersvgg = [[16, 16, 32, 64, 128], [16, 32, 64, 128, 128], [32, 64, 128, 256, 256], [64, 64, 64, 64, 64, 64, 64]]
+    layersvgg = [len(f) for f in filtersvgg]
+
+    # ResNet parameters
+    num_blocks = [6, 6, 6, 6, 6, 6]
+    num_layers = [2, 2, 2, 3, 3, 3]
+    num_filters = [[8, 16], [16, 32], [32, 64], [8, 16], [16, 32], [32, 64]]
+
     CNN = False
     VGG = False
-    ResNet = False
-    Other = True
-
+    ResNet = True
+    Other = False
+    epochs = 50
+    if ResNet:
+        run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
+                               data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                               out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
     if CNN:
-        run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=32,
-                                     data_dir=r'E:\Anomaly_detection', epochs=20)
+        run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=8,
+                                     data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                                     out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
     if VGG:
         run_VGG_experiments(layersvgg, filtersvgg, kernels=kernels, image_size=(640, 360), batch_size=8,
-                            data_dir=r'E:\Anomaly_detection', epochs=20)
+                            data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                            out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
     if ResNet:
         run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
                                data_dir=r'E:\Anomaly_detection', epochs=20)
-    else:
-        run_precompiled_experiments('DenseNet121', batch_size=8, data_dir=None, out_dir=os.getcwd(),
-                                    optimizer='adam', epochs=3)
+    if Other:
+        for arch in ['DenseNet121', 'DenseNet169', 'MobileNetV2']:
+            run_precompiled_experiments(arch, batch_size=8, data_dir=r'E:\Anomaly_detection',
+                                        optimizer='adam', epochs=epochs,
+                                        out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+
+        run_precompiled_experiments('MobileNetV2', weights=None, batch_size=8, data_dir=r'E:\Anomaly_detection',
+                                    optimizer='adam', epochs=epochs,
+                                    out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+        run_precompiled_experiments('MobileNetV2', weights='imagenet', batch_size=8, data_dir=r'E:\Anomaly_detection',
+                                    optimizer='adam', epochs=epochs,
+                                    out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
