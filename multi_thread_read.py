@@ -82,7 +82,7 @@ class FileVideoStream:
         # if the override flag is passed in, revert to the manual
         # method of counting frames
         if override:
-            total = count_frames_manual(video)
+            total = self.count_frames_manual(video)
 
         # otherwise, let's try the fast way first
         else:
@@ -96,7 +96,7 @@ class FileVideoStream:
 
             # uh-oh, we got an error -- revert to counting manually
             except:
-                total = count_frames_manual(video)
+                total = self.count_frames_manual(video)
 
         # release the video file pointer
         video.release()
