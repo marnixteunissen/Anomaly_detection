@@ -1,20 +1,21 @@
 from threading import Thread
-from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
+from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT, cuda_GpuMat
 from queue import Queue
 from time import time, sleep
-from tensorflow import expand_dims
+from tensorflow import expand_dims, concat, stack, convert_to_tensor, zeros
 from tensorflow.keras.models import load_model
 from json import load
 from pandas import DataFrame
 import os
-from datetime import timedelta
 import argparse
+from time import time
 
 
 class FileVideoStream:
-    def __init__(self, path, model_dir, queueSize=5):
+    def __init__(self, path, model_dir, queueSize=20, batch_size=32):
         self.count = 0
         self.frame_skip = 10
+        self.batch_size = batch_size
         # Counting total frames to keep track of progress
         self.frame_count = self.count_frames(path)
 
@@ -44,15 +45,20 @@ class FileVideoStream:
                 return
 
             if not self.Q.full():
-                # Read the next frame
                 self.stream.set(1, self.count)
-                grabbed, frame = self.stream.read()
-                if not grabbed:
-                    self.stopped = True
-                    return
-                frame = resize(frame, self.img_size)
-                model_input = expand_dims(frame, 0)
-                self.Q.put((model_input, self.count))
+                batch = []
+                for sample in range(self.batch_size):
+                    # Read the next frame
+                    grabbed, frame = self.stream.read()
+                    if not grabbed:
+                        self.stopped = True
+                        return
+                    frame = resize(frame, self.img_size)
+                    batch.append(frame)
+                    model_input = expand_dims(frame, 0)
+
+                batch = stack(batch)
+                self.Q.put((batch, self.count))
                 self.count += self.step
 
     def read(self):
@@ -126,34 +132,38 @@ class FileVideoStream:
 def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
     first_stamp = os.path.split(video)[-1].split('@')[0].split()[0]
 
-    print("Starting video file thread...")
-    fvs = FileVideoStream(video_file, model_dir).start()
+    print("Loading Model...")
+    start = time()
     if 'best' in os.listdir(model_dir + '/saved_model'):
         model = load_model(model_dir + '/saved_model/best')
     else:
         model = load_model(model_dir + '/saved_model')
+    stop = time()
+    print(f'Loading time model: {stop-start}')
+
+    print("Starting video file thread...")
+    fvs = FileVideoStream(video_file, model_dir).start()
     fps = fvs.fps
 
-    # TODO: automation of creating and predicting mor classes here
+    # TODO: automation of creating and predicting more classes here
     class_dict = {'FJOK': [], 'NONE': []}
 
     prob_dict = class_dict
-    prob_dict['timestamp'] = []
     start = time()
     skipped_publications = 0
     publications_to_skip = 20
+
+    print("Starting inference...")
     while fvs.more():
-        # Read input tesnor for model
+        # Read input tensor for model
         model_input, frame_nr = fvs.read()
-        timestamp = first_stamp + timedelta(seconds=(frame_nr/fps))
         # Run inference on tensor:
         pred = model(model_input).numpy()[0]
 
         # TODO: make sure class columns reflect possible other classes too
         prob_dict['FJOK'].append(pred[0])
         prob_dict['NONE'].append(pred[1])
-        prob_dict['timestamp'].append(timestamp)
-        
+
         if skipped_publications > (publications_to_skip - 1):
             print("Progress: {:.2f} %".format((100.0 * frame_nr) / fvs.frame_count))
             skipped_publications = 0
@@ -173,6 +183,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
         prob.to_csv(model_dir + '/prediction_' + vid_name + '.csv')
 
 if __name__ == "__main__":
+    print("parsing arguments...")
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default=None,
                         help='Full path to the video file',
@@ -204,7 +215,6 @@ if __name__ == "__main__":
         os.makedirs(opt.save_dir)
         save_dir = opt.save_dir
 
-    show_output = (opt.show.lower() == 'true')
     save_output = (opt.save.lower() == 'true')
 
     run_detection_multi_thread(video, model_dir, save_dir=save_dir, save=save_output)
