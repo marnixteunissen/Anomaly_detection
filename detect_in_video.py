@@ -1,14 +1,13 @@
 from threading import Thread
-from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT, cuda_GpuMat
+from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
 from queue import Queue
 from time import time, sleep
-from tensorflow import expand_dims, concat, stack, convert_to_tensor, zeros
+from tensorflow import expand_dims, compat, float32
 from tensorflow.keras.models import load_model
 from json import load
 from pandas import DataFrame
 import os
 import argparse
-from time import time
 
 
 class FileVideoStream:
@@ -127,20 +126,24 @@ class FileVideoStream:
 
 
 def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
-    first_stamp = os.path.split(video)[-1].split('@')[0].split()[0]
 
     print("Loading Model...")
     start = time()
     if 'best' in os.listdir(model_dir + '/saved_model'):
-        model = load_model(model_dir + '/saved_model/best')
+        if 'best_model.h5' in os.listdir(model_dir + '/saved_model/best'):
+            model = load_model(model_dir + '/saved_model/best/best_model.h5')
+        else:
+            model = load_model(model_dir + '/saved_model/best')
     else:
-        model = load_model(model_dir + '/saved_model')
+        if 'saved_model.h5' in os.listdir(model_dir + '/saved_model'):
+            model = load_model(model_dir + '/saved_model.h5')
+        else:
+            model = load_model(model_dir + '/saved_model')
     stop = time()
     print(f'Loading time model: {stop-start}')
 
     print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
-    fps = fvs.fps
 
     # TODO: automation of creating and predicting more classes here
     class_dict = {'FJOK': [], 'NONE': []}
@@ -152,10 +155,16 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
     print("Starting inference...")
     while fvs.more():
+        start = time()
         # Read input tensor for model
         model_input, frame_nr = fvs.read()
+        stop = time()
+        print(f"Reading time: {stop-start}")
         # Run inference on tensor:
+        start = time()
         pred = model(model_input).numpy()[0]
+        stop = time()
+        print(f"prediction time: {stop-start}")
 
         # TODO: make sure class columns reflect possible other classes too
         prob_dict['FJOK'].append(pred[0])
@@ -213,5 +222,9 @@ if __name__ == "__main__":
         save_dir = opt.save_dir
 
     save_output = (opt.save.lower() == 'true')
+
+    config = compat.v1.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.333
+    session = compat.v1.InteractiveSession(config=config)
 
     run_detection_multi_thread(video, model_dir, save_dir=save_dir, save=save_output)
