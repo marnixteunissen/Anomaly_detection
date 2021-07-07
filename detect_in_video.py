@@ -13,7 +13,7 @@ import argparse
 class FileVideoStream:
     def __init__(self, path, model_dir, queueSize=20, batch_size=32):
         self.count = 0
-        self.frame_skip = 10
+        self.frame_skip = 0
         self.batch_size = batch_size
         # Counting total frames to keep track of progress
         self.frame_count = self.count_frames(path)
@@ -22,7 +22,8 @@ class FileVideoStream:
         self.stream = VideoCapture(path)
         self.stopped = False
         self.fps = self.stream.get(CAP_PROP_FPS)
-        self.step = int(self.fps/self.frame_skip)
+        print(f"Framerate in video is {self.fps} fps, skipping {self.frame_skip} frames per iteration")
+        self.step = 1 + self.frame_skip #int(self.fps/self.frame_skip)
 
         # Creating Queue
         self.Q = Queue(maxsize=queueSize)
@@ -155,16 +156,11 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
     print("Starting inference...")
     while fvs.more():
-        start = time()
         # Read input tensor for model
         model_input, frame_nr = fvs.read()
-        stop = time()
-        print(f"Reading time: {stop-start}")
+
         # Run inference on tensor:
-        start = time()
         pred = model(model_input).numpy()[0]
-        stop = time()
-        print(f"prediction time: {stop-start}")
 
         # TODO: make sure class columns reflect possible other classes too
         prob_dict['FJOK'].append(pred[0])

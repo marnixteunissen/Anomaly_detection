@@ -33,8 +33,7 @@ def change_model_format(model_dir):
 
 if __name__=="__main__":
     video_file = r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\data\video\20200423213211791@MainDVR_Ch2_Trim3.mp4'
-    model_source = r'C:\Users\MTN\Documents\Survey_anomaly_detection\pycharm\Anomaly_detection\runs\ResNet architectures\8'
-    fvs = FileVideoStream(video_file, model_source).start()
-    for thread in threading.enumerate():
-        print(thread.name)
+    model_source = r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results\runs\VGG architectures\1'
+    # fvs = FileVideoStream(video_file, model_source).start()
+
     change_model_format(model_source)
