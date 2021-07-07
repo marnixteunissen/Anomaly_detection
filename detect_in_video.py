@@ -2,7 +2,7 @@ from threading import Thread
 from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
 from queue import Queue
 from time import time, sleep
-from tensorflow import expand_dims, compat, float32
+from tensorflow import expand_dims, compat, queue, float32, int16, uint8
 from tensorflow.keras.models import load_model
 from json import load
 from pandas import DataFrame
@@ -29,7 +29,10 @@ class FileVideoStream:
         self.Q = Queue(maxsize=queueSize)
 
         with open(model_dir + r'/config.json') as f:
+            # this size is in opencv format: [W, H]
             self.img_size = tuple(load(f)['image_size']['py/tuple'])
+        # here shape is according to tf standard tensor format: [n, H, W, C]
+        self.tf_queue = queue.FIFOQueue(16, [uint8, int16], shapes=[[1, self.img_size[1], self.img_size[0], 3], [1]])
 
     def start(self):
         # Start thread to read frames
@@ -44,31 +47,32 @@ class FileVideoStream:
             if self.stopped:
                 return
 
-            if not self.Q.full():
-                self.stream.set(1, self.count)
+            self.stream.set(1, self.count)
 
-                # Read the next frame
-                grabbed, frame = self.stream.read()
-                if not grabbed:
-                    self.stopped = True
-                    return
-                frame = resize(frame, self.img_size)
-                model_input = expand_dims(frame, 0)
+            # Read the next frame
+            grabbed, frame = self.stream.read()
 
-                self.Q.put((model_input, self.count))
-                self.count += self.step
+            if not grabbed:
+                self.stopped = True
+                return
+
+            frame = resize(frame, self.img_size)
+            model_input = expand_dims(frame, 0)
+
+            self.tf_queue.enqueue([model_input, [self.count]])
+            self.count += self.step
 
     def read(self):
         # Return next frame in the queue
-        return self.Q.get()
+        return self.tf_queue.dequeue()
 
     def more(self):
         # return True if there are still frames in the queue
         tries = 0
-        while self.Q.qsize() == 0 and not self.stopped and tries < 5:
+        while self.tf_queue.size() == 0 and not self.stopped and tries < 5:
             sleep(0.1)
             tries += 1
-        return self.Q.qsize() > 0
+        return self.tf_queue.size() > 0
 
     def stop(self):
         # indicate that the thread should be stopped
@@ -158,7 +162,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
     while fvs.more():
         # Read input tensor for model
         model_input, frame_nr = fvs.read()
-
+        frame_nr = int(frame_nr[0])
         # Run inference on tensor:
         pred = model(model_input).numpy()[0]
 
@@ -183,6 +187,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
         prob.to_csv(save_dir + '/prediction_' + vid_name + '.csv')
     elif save and save_dir is None:
         prob.to_csv(model_dir + '/prediction_' + vid_name + '.csv')
+
 
 if __name__ == "__main__":
     print("parsing arguments...")
@@ -218,9 +223,5 @@ if __name__ == "__main__":
         save_dir = opt.save_dir
 
     save_output = (opt.save.lower() == 'true')
-
-    config = compat.v1.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = 0.333
-    session = compat.v1.InteractiveSession(config=config)
 
     run_detection_multi_thread(video, model_dir, save_dir=save_dir, save=save_output)

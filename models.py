@@ -13,12 +13,12 @@ import data_processing
 import os
 
 
-def build_conv_network(num_layers, filters, image_size=(640, 360), kernel=3, classes=2, activation='relu', optimizer='adam'):
+def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', optimizer='adam'):
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
     # model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
-    model.add(layers.BatchNormalization(input_shape=(image_size[1], image_size[0], 3)))
+    model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
         if i % kernel == 0:
@@ -40,7 +40,7 @@ def build_conv_network(num_layers, filters, image_size=(640, 360), kernel=3, cla
     return model
 
 
-def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=5, classes=2, activation='relu', optimizer='adam'):
+def VGG_like_network(num_layers, filters, image_size=(360, 640), kernel=5, classes=2, activation='relu', optimizer='adam'):
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
@@ -65,7 +65,7 @@ def VGG_like_network(num_layers, filters, image_size=(640, 360), kernel=5, class
 
 
 class ResNet():
-    def __init__(self, num_blocks, num_layers, num_filters=[32, 64], input_shape=[640, 360, 3], activation='relu',
+    def __init__(self, num_blocks, num_layers, num_filters=[32, 64], input_shape=[360, 640, 3], activation='relu',
                  num_classes=2, optimizer='adam'):
         self.activation = activation
         self.num_filters = num_filters
