@@ -5,9 +5,10 @@ from time import time, sleep
 from tensorflow import expand_dims, compat, queue, float32, int16, uint8
 from tensorflow.keras.models import load_model
 from json import load
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
 import os
 import argparse
+from datetime import timedelta
 
 
 class FileVideoStream:
@@ -23,7 +24,7 @@ class FileVideoStream:
         self.stopped = False
         self.fps = self.stream.get(CAP_PROP_FPS)
         print(f"Framerate in video is {self.fps} fps, skipping {self.frame_skip} frames per iteration")
-        self.step = 1 + self.frame_skip #int(self.fps/self.frame_skip)
+        self.step = 1 + self.frame_skip
 
         # Creating Queue
         self.Q = Queue(maxsize=queueSize)
@@ -131,6 +132,8 @@ class FileVideoStream:
 
 
 def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
+    time_string = os.path.split(video)[-1].split('@')[0].split()[0]
+    first_stamp = to_datetime(time_string, format="%Y%m%d%H%M%S%f")
 
     print("Loading Model...")
     start = time()
@@ -149,11 +152,14 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
     print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
+    fps = fvs.fps/fvs.step
 
     # TODO: automation of creating and predicting more classes here
     class_dict = {'FJOK': [], 'NONE': []}
 
     prob_dict = class_dict
+    prob_dict['timestamp'] = []
+
     start = time()
     skipped_publications = 0
     publications_to_skip = 20
@@ -165,10 +171,12 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
         frame_nr = int(frame_nr[0])
         # Run inference on tensor:
         pred = model(model_input).numpy()[0]
+        timestamp = first_stamp + timedelta(seconds=(frame_nr / fps))
 
         # TODO: make sure class columns reflect possible other classes too
         prob_dict['FJOK'].append(pred[0])
         prob_dict['NONE'].append(pred[1])
+        prob_dict['timestamp'].append(timestamp)
 
         if skipped_publications > (publications_to_skip - 1):
             print("Progress: {:.2f} %".format((100.0 * frame_nr) / fvs.frame_count))
