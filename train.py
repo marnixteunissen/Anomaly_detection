@@ -47,7 +47,6 @@ def create_datasets(data_dir, img_size, batch_size):
 def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(), epochs=3):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
-    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size)
     run_path = os.path.join(out_dir, 'runs')
 
     ex = Experiment('Varying layers and filters')
@@ -536,9 +535,9 @@ def run_precompiled_experiments(model_type, batch_size, weights='imagenet', imag
 
 if __name__ == "__main__":
     # CNN parameters
-    layers = [8]
-    filters = [64, 128, 256]
-    kernels = [3]
+    layers = [14, 14, 14, 14, 14, 12]
+    filters = [32, 64, 128, 256, 32, 32]
+    kernels = [3, 3, 3, 3, 5, 5]
 
     # VGG parameters
     filtersvgg = [[16, 16, 32, 64, 128], [16, 32, 64, 128, 128], [32, 64, 128, 256, 256], [64, 64, 64, 64, 64, 64, 64]]
@@ -549,35 +548,39 @@ if __name__ == "__main__":
     num_layers = [2, 2, 2, 3, 3, 3]
     num_filters = [[8, 16], [16, 32], [32, 64], [8, 16], [16, 32], [32, 64]]
 
-    CNN = False
+    CNN = True
     VGG = False
-    ResNet = True
+    ResNet = False
     Other = False
     epochs = 50
+    batch_size = 16
+    image_size = (360, 640)
+    data_dir = r'E:\Anomaly_detection'
+    out_dir = r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results'
     if ResNet:
         run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
-                               data_dir=r'E:\Anomaly_detection', epochs=epochs,
-                               out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+                               data_dir=data_dir, epochs=epochs,
+                               out_dir=out_dir)
     if CNN:
         run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=8,
-                                     data_dir=r'E:\Anomaly_detection', epochs=epochs,
-                                     out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
+                                     data_dir=data_dir, epochs=epochs,
+                                     out_dir=out_dir)
     if VGG:
         run_VGG_experiments(layersvgg, filtersvgg, kernels=kernels, image_size=(640, 360), batch_size=8,
-                            data_dir=r'E:\Anomaly_detection', epochs=epochs,
+                            data_dir=data_dir, epochs=epochs,
                             out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
     if ResNet:
         run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
-                               data_dir=r'E:\Anomaly_detection', epochs=20)
+                               data_dir=data_dir, epochs=20)
     if Other:
         for arch in ['DenseNet121', 'DenseNet169', 'MobileNetV2']:
-            run_precompiled_experiments(arch, batch_size=8, data_dir=r'E:\Anomaly_detection',
+            run_precompiled_experiments(arch, batch_size=8, data_dir=data_dir,
                                         optimizer='adam', epochs=epochs,
                                         out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
 
-        run_precompiled_experiments('MobileNetV2', weights=None, batch_size=8, data_dir=r'E:\Anomaly_detection',
+        run_precompiled_experiments('MobileNetV2', weights=None, batch_size=8, data_dir=data_dir,
                                     optimizer='adam', epochs=epochs,
                                     out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
-        run_precompiled_experiments('MobileNetV2', weights='imagenet', batch_size=8, data_dir=r'E:\Anomaly_detection',
+        run_precompiled_experiments('MobileNetV2', weights='imagenet', batch_size=8, data_dir=data_dir,
                                     optimizer='adam', epochs=epochs,
                                     out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')

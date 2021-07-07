@@ -30,10 +30,10 @@ class FileVideoStream:
         self.Q = Queue(maxsize=queueSize)
 
         with open(model_dir + r'/config.json') as f:
-            # this size is in opencv format: [W, H]
+            # this size is in opencv format: tf standard tensor format: [H, W]
             self.img_size = tuple(load(f)['image_size']['py/tuple'])
         # here shape is according to tf standard tensor format: [n, H, W, C]
-        self.tf_queue = queue.FIFOQueue(16, [uint8, int16], shapes=[[1, self.img_size[1], self.img_size[0], 3], [1]])
+        self.tf_queue = queue.FIFOQueue(16, [uint8, int16], shapes=[[1, self.img_size[0], self.img_size[1], 3], [1]])
 
     def start(self):
         # Start thread to read frames
@@ -57,7 +57,8 @@ class FileVideoStream:
                 self.stopped = True
                 return
 
-            frame = resize(frame, self.img_size)
+            # resizing the frame using the opencv order: [W, H]
+            frame = resize(frame, [self.img_size[1], self.img_size[0]])
             model_input = expand_dims(frame, 0)
 
             self.tf_queue.enqueue([model_input, [self.count]])

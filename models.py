@@ -17,18 +17,19 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
     # initialize model:
     model = keras.Sequential()
     # Normalising layer:
-    # model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
     model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
         if i % kernel == 0:
             model.add(layers.Conv2D(filters, kernel, activation=activation))
             model.add(layers.MaxPooling2D())
+            model.add(layers.Dropout(0.2))
         else:
             model.add(layers.Conv2D(filters, kernel, activation=activation))
-            model.add(layers.MaxPooling2D(strides=(1, 1)))
+            model.add(layers.MaxPooling2D(strides=(1, 1), padding='same'))
 
     model.add(layers.Flatten())
+    model.add(layers.Dropout(0.2))
     model.add(layers.Dense(128, activation=activation))
     model.add(layers.Dense(classes))
     model.add(layers.Softmax())
@@ -36,6 +37,7 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
         optimizer=optimizer,
         loss=losses.SparseCategoricalCrossentropy(),
         metrics=['accuracy'])
+    model.summary()
 
     return model
 
