@@ -1,32 +1,52 @@
-# Setting up:
-### 1. Downloading and installing ffmpeg.
-Following the tuorial from:
-https://www.thewindowsclub.com/how-to-install-ffmpeg-on-windows-10#:~:text=Navigate%20to%20Advanced%20button%20and,bin%5C%E2%80%9D%20and%20click%20OK.
+# Installing CUDA computation toolkit for Tensorflow or PyTorch
 
-The file can be extracted to the same folder as the pycharm project is in. Important: adding ffmpeg to path.
+###Requirements:
+- CUDA compatible GPU (NVIDIA GPU's are compatible)
+- Installation of tensorflow or pytorch with GPU support (in tensorflow this is standard from version 2.0 onwards)
+- Admin rights to the target PC
 
-### 2. Install OpenCV
-following tutorial on: https://sourceforge.net/projects/opencvlibrary/files/
+### Installation
 
+####1. Download CUDA computation toolkit:
+   
+download the files from https://developer.nvidia.com/cuda-downloads for the relevant system.
+    
+####2. Install the software:
+    
+This step might require disabling the virus scanner. 
+- Run the cuda_<>.exe installer
+- Extract the files to the preferred installation location
+- The "Express Installetion" suffices for running Tensorflow with CUDA
+- Install
 
-#### extracting frames:
-https://www.bogotobogo.com/FFMpeg/ffmpeg_thumbnails_select_scene_iframe.php
-#### metadata from file:
-http://ffmpeg.org/ffmpeg-formats.html#Metadata-1
-#### executing shell commands in python:
-https://janakiev.com/blog/python-shell-commands/
+####3. Download CUDNN toolbox:
 
-#### Possible alternatives:
-Instead of ffmpeg, using openCV or equivalent
+Downloading the latest version requires creating a NVIDIA Developer Program account, 
+a version of the dll's is included in this repository. 
+The extracted cudnn download contains a directory called \cuda, similar to the one in this repository
 
-#### Possible problems:
-ffmpeg not working when trying to extract frames with python functions from server files.
+####4. Copy dll files for CUDNN to Cuda installation:
 
-Downloading all files could be time consuming.
+Default installation location for CUDA is:
 
-Extracting metadata using ffmpeg has to be improved, shows enough but 
-outputs too little to .txt file
+    C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\<version>
 
-possibly incoming video files have to be extracted frame by frame for classification 
---> look for ways touse mp4 as input, or webcam-like input.
+Copy all the dll files from the \bin, \include, and \lib directories of 
+the extracted \cuda directory to their respective counterparts in the CUDA installation
+
+####5. Testing Tensorflow with cuda support:
+
+To ensure cuda was installed correctly, run the following lines of code in a python console of choice:
+- For Tensorflow the following lines should print "True":
+
+        import tensorflow as tf
+  
+        physical_devices = tf.config.list_physical_devices('GPU')
+        print(len(physical_devices) == 1)
+
+- For Pytorch the following lines should print "True":
+
+        import torch
+
+        torch.cuda.is_available()
 
