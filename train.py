@@ -535,9 +535,9 @@ def run_precompiled_experiments(model_type, batch_size, weights='imagenet', imag
 
 if __name__ == "__main__":
     # CNN parameters
-    layers = [14, 14, 14, 14, 14, 12]
-    filters = [32, 64, 128, 256, 32, 32]
-    kernels = [3, 3, 3, 3, 5, 5]
+    layers = [14, 14, 14, 14, 12]
+    filters = [64, 128, 256, 32, 32]
+    kernels = [3, 3, 3, 5, 5]
 
     # VGG parameters
     filtersvgg = [[16, 16, 32, 64, 128], [16, 32, 64, 128, 128], [32, 64, 128, 256, 256], [64, 64, 64, 64, 64, 64, 64]]
