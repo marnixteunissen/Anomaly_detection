@@ -153,7 +153,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
     print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
-    fps = fvs.fps/fvs.step
+    fps = fvs.fps
 
     # TODO: automation of creating and predicting more classes here
     class_dict = {'FJOK': [], 'NONE': []}
