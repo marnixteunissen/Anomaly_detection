@@ -23,7 +23,7 @@ class FileVideoStream:
         self.stream = VideoCapture(path)
         self.stopped = False
         self.fps = self.stream.get(CAP_PROP_FPS)
-        print(f"Framerate in video is {self.fps} fps, skipping {self.frame_skip} frames per iteration")
+        print(f"Framerate in video is {self.fps} fps, skipping {self.frame_skip} frames per iteration", flush=True)
         self.step = 1 + self.frame_skip
 
         # Creating Queue
@@ -136,7 +136,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
     time_string = os.path.split(video)[-1].split('@')[0].split()[0]
     first_stamp = to_datetime(time_string, format="%Y%m%d%H%M%S%f")
 
-    print("Loading Model...")
+    print("Loading Model...", flush=True)
     start = time()
     if 'best' in os.listdir(model_dir + '/saved_model'):
         if 'best_model.h5' in os.listdir(model_dir + '/saved_model/best'):
@@ -149,9 +149,8 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
         else:
             model = load_model(model_dir + '/saved_model')
     stop = time()
-    print(f'Loading time model: {stop-start}')
+    print(f'Loading time model: {stop-start}', flush=True)
 
-    print("Starting video file thread...")
     fvs = FileVideoStream(video_file, model_dir).start()
     fps = fvs.fps
 
@@ -165,7 +164,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
     skipped_publications = 0
     publications_to_skip = 20
 
-    print("Starting inference...")
+    print("Starting inference...", flush=True)
     while fvs.more():
         # Read input tensor for model
         model_input, frame_nr = fvs.read()
@@ -180,7 +179,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
         prob_dict['timestamp'].append(timestamp)
 
         if skipped_publications > (publications_to_skip - 1):
-            print("Progress: {:.2f} %".format((100.0 * frame_nr) / fvs.frame_count))
+            print("Progress: {:.2f} %".format((100.0 * frame_nr) / fvs.frame_count), flush=True)
             skipped_publications = 0
         else:
             skipped_publications += 1
@@ -199,7 +198,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
 
 if __name__ == "__main__":
-    print("parsing arguments...")
+    print("Parsing arguments...", flush=True)
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default=None,
                         help='Full path to the video file',
