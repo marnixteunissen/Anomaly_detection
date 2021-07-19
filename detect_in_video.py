@@ -2,7 +2,7 @@ from threading import Thread
 from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
 from queue import Queue
 from time import time, sleep
-from tensorflow import expand_dims, compat, queue, float32, int16, uint8
+from tensorflow import expand_dims, compat, queue, float32, int32, uint8
 from tensorflow.keras.models import load_model
 from json import load
 from pandas import DataFrame, to_datetime
@@ -33,7 +33,7 @@ class FileVideoStream:
             # this size is in opencv format: tf standard tensor format: [H, W]
             self.img_size = tuple(load(f)['image_size']['py/tuple'])
         # here shape is according to tf standard tensor format: [n, H, W, C]
-        self.tf_queue = queue.FIFOQueue(16, [uint8, int16], shapes=[[1, self.img_size[0], self.img_size[1], 3], [1]])
+        self.tf_queue = queue.FIFOQueue(16, [uint8, int32], shapes=[[1, self.img_size[0], self.img_size[1], 3], [1]])
 
     def start(self):
         # Start thread to read frames
