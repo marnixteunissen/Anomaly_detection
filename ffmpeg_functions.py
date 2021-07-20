@@ -1,5 +1,5 @@
-from Anomaly_detection.file_functions import *
-from Anomaly_detection.excel_functions import *
+from file_functions import *
+from excel_functions import *
 import os
 import subprocess
 import sys, getopt
@@ -139,7 +139,7 @@ def convert_all_to_mp4(input_dir):
 
 
 if __name__ == "__main__":
-    input_dir = r'H:\Sur de Texas - Tuxpan\Video'
+    input_dir = r'H:\Sur de Texas\ignore'
     convert_all_to_mp4(input_dir)
 
 
