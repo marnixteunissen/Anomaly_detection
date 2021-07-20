@@ -5,18 +5,32 @@ import os
 import argparse
 
 
+def get_delays():
+    delays = {'LingShui':           1.900,
+              'Troll':              1.550,
+              'Turkstream':         0.500,
+              'Baltic Connector':   0.000,
+              'Noble Tamar':        2.850,
+              'Nordstream':         1.200,
+              'Sur de Texas':       0.000}
+    return delays
+
+
 def create_dataset(project,
                    channel_idx=1,
                    classes='Field Joint',
                    delay=0.000,
                    neg_samples=5,
+                   extra_pos_samples=0,
                    out_dir='',
                    split=0.2,
                    use_perc=1.0,
                    root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
     # Check if project is available:
-    if project not in delays().keys():
+    delay_dict = get_delays()
+
+    if project not in delay_dict.keys():
         raise FileNotFoundError('Project files were not found in {}'.format(root_dir))
 
     # Getting correct channel names:
@@ -83,43 +97,34 @@ def create_dataset(project,
             for video_dir in dirs:
                 # extracting all the frames from the video (only Field Joints for now)
                 extract_all_pos_frames(project, video_dir, data_points, output_dir,
-                                       delay=delay, channel=channel)
+                                       delay=delay, channel=channel, n_augment=extra_pos_samples)
+                tot_neg = (extra_pos_samples+1)*neg_samples
                 extract_all_neg_frames(project, video_dir, data_points, output_dir,
-                                       nr_samples=neg_samples,
+                                       nr_samples=tot_neg,
                                        delay=delay, channel=channel)
 
     print('Data-set created for project', project)
 
 
-def delays():
-    delays = {'LingShui':           1.900,
-              'Troll':              1.550,
-              'Turkstream':         0.500,
-              'Baltic Connector':   0.000,
-              'Noble Tamar':        2.850,
-              'Nordstream':         1.200,
-              'Sur de Texas':       0.000}
-    return delays
-
-
 if __name__ == "__main__":
     # TODO: add parser arguments for commandline running
     delays = {'LingShui':                     1.900,
-              'Troll':                        1.550,
+              'Troll':                        2.250,
               'Turkstream':                   0.500,
-              'Baltic Connector':             0.000,
+              'Baltic Connector':             0.500,
               'Noble Tamar':                  2.850,
               'Nordstream':                   1.200,
               'Sur de Texas':                 0.000}
 
     root = os.getcwd()
-    projects = ['Sur de Texas']
+    projects = ['Troll', 'Turkstream']
 
-    data_dir = r'E:\Data'
+    data_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
     for project in projects:
         delay = delays[project]
         create_dataset(project,
                        delay=delay,
-                       neg_samples=0,
+                       neg_samples=7,
+                       extra_pos_samples=5,
                        root_dir=data_dir,
-                       out_dir=r'E:\Anomaly_detection\test_texas')
+                       out_dir=r'E:\dataset_19_07_21')
