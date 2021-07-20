@@ -7,7 +7,7 @@ import random
 
 
 def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
-                           delay=0.000, channel=1, show=False):
+                           delay=0.000, channel=1, show=False, n_augment=0):
     """
     Extracts all the frames at all event times in given video for all given channels
     :param project:     string
@@ -34,6 +34,27 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     time_stamps = excel_data["ms in video"].tolist()
     codes = excel_data["Secondary Code"].tolist()
     sample_nrs = excel_data.index.to_list()
+
+    step = 100
+    adding_stamps = []
+    adding_codes = []
+    adding_idx = []
+    last_idx = sample_nrs[-1]
+
+    for n in range(n_augment):
+        tstep = step*((-1)**n)
+        extra_stamps = [time+tstep for time in time_stamps]
+        adding_stamps.extend(extra_stamps)
+        adding_codes.extend(codes)
+        extra_idx = [idx + (n+1)*last_idx for idx in sample_nrs]
+        adding_idx.extend(extra_idx)
+        if (n+1) % 2 == 0:
+            step = 2 * step
+
+    time_stamps.extend(adding_stamps)
+    codes.extend(adding_codes)
+    sample_nrs.extend(adding_idx)
+
     nr_success = 0
 
     # Set output directory:
@@ -194,13 +215,13 @@ def extract_frame(video_file, time=500):
 
 
 if __name__ == "__main__":
-    dir = os.getcwd()
+    dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
     print("working directory: ", dir)
-    video = (dir + r"\data\Turkstream\Video_PL4_KP475-500\DATA_20180115220421906")
-    excel = excel_f.extract_excel_data(dir + r'\data\Turkstream')
+    video = (dir + r"\Turkstream\Video_PL4_KP475-500\DATA_20180115220421906")
+    excel = excel_f.extract_excel_data(dir + r'\Turkstream')
     chann = 2
-    extract_all_pos_frames('Turkstream', video, excel, out_dir=dir + r'\data\Samples',
-                           delay=0.000, channel=chann, show=True)
+    extract_all_pos_frames('Turkstream', video, excel, out_dir=r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test',
+                           delay=0.000, channel=chann, augment=False, show=False, n_augment=4)
     # extract_all_neg_frames(dir + r'\data\Troll\video\DATA_20200423140158475', excel, dir + r'\data\Samples',
     #                        delay=0.500, channels=chann)
 
