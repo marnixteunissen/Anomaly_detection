@@ -30,6 +30,9 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     # Open excel data
     excel_data = excel_f.extract_video_events(excel_in, video_dir, static_offset=-delay)
 
+    video_file = file.get_video_file_name(video_dir, channel)
+    print("Opening", os.path.join(video_dir, video_file))
+
     # Create iterable lists for creating frames
     time_stamps = excel_data["ms in video"].tolist()
     codes = excel_data["Secondary Code"].tolist()
@@ -39,7 +42,10 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     adding_stamps = []
     adding_codes = []
     adding_idx = []
-    last_idx = sample_nrs[-1]
+    if len(sample_nrs) == 0:
+        last_idx = 0
+    else:
+        last_idx = sample_nrs[-1]
 
     for n in range(n_augment):
         tstep = step*((-1)**n)
@@ -73,9 +79,6 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
             raise FileNotFoundError('Directory ', out_dir, ' was not found and not created, '
                                                            'please use existing directory or create one')
 
-    video_file = file.get_video_file_name(video_dir, channel)
-
-    print("Opening", os.path.join(video_dir, video_file))
     cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
     assert cap.isOpened()
 
@@ -179,7 +182,7 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
         if not success:
             raise ValueError('Image was not read')
 
-    print("Saved {}/{} images to {}".format(nr_success, len(neg_stamps), save_dir))
+    print("Saved {}/{} images to {}".format(nr_success, len(neg_stamps), save_dir + r'\NONE'))
     print('')
 
 
@@ -215,13 +218,14 @@ def extract_frame(video_file, time=500):
 
 
 if __name__ == "__main__":
-    dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
+    dir = r'E:\Data\Sur de Texas'
     print("working directory: ", dir)
-    video = (dir + r"\Turkstream\Video_PL4_KP475-500\DATA_20180115220421906")
-    excel = excel_f.extract_excel_data(dir + r'\Turkstream')
+    video = (dir + r"\Video\DATA_20180322211350030")
+    excel = excel_f.extract_excel_data(dir)
+    print(excel)
     chann = 2
-    extract_all_pos_frames('Turkstream', video, excel, out_dir=r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test',
-                           delay=0.000, channel=chann, augment=False, show=False, n_augment=4)
+    extract_all_pos_frames('Sur de Texas', video, excel, out_dir=r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test',
+                           delay=0.000, channel=chann, show=False)
     # extract_all_neg_frames(dir + r'\data\Troll\video\DATA_20200423140158475', excel, dir + r'\data\Samples',
     #                        delay=0.500, channels=chann)
 
