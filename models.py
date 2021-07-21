@@ -20,13 +20,14 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
     model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
-        if i % kernel == 0:
+        if i % int(2*kernel) == 0 or i == num_layers - 1:
             model.add(layers.Conv2D(filters, kernel, activation=activation))
-            model.add(layers.MaxPooling2D())
             model.add(layers.Dropout(0.2))
+            model.add(layers.MaxPooling2D())
         else:
             model.add(layers.Conv2D(filters, kernel, activation=activation))
-            model.add(layers.MaxPooling2D(strides=(1, 1), padding='same'))
+            model.add(layers.Dropout(0.2))
+            model.add(layers.MaxPooling2D(strides=(1, 1)))
 
     model.add(layers.Flatten())
     model.add(layers.Dropout(0.2))
