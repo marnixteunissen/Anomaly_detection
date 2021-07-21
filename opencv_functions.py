@@ -60,7 +60,7 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     time_stamps.extend(adding_stamps)
     codes.extend(adding_codes)
     sample_nrs.extend(adding_idx)
-
+    print('number of positives:', len(sample_nrs))
     nr_success = 0
 
     # Set output directory:
@@ -85,11 +85,15 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     for (time_stamp, code, sample_nr) in tqdm(zip(time_stamps, codes, sample_nrs), total=len(time_stamps)):
         cap.set(cv2.CAP_PROP_POS_MSEC, int(time_stamp))
         success, image = cap.read()
+        nr_files_before = len(os.listdir(os.path.join(save_dir, code)))
         if success:
             save_path = os.path.join(save_dir, code, (str(sample_nr).zfill(6) + '_' + project + '.png'))
             cv2.imwrite(save_path, image)
 
-            nr_success = nr_success + 1
+            nr_files_after = len(os.listdir(os.path.join(save_dir, code)))
+            if nr_files_after-nr_files_before != 0:
+                nr_success = nr_success + 1
+
             if show:
                 cv2.imshow("saved image:", image)
                 cv2.waitKey()
@@ -152,7 +156,7 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     neg_stamps = []
     for n in range(len(time_stamps)-1):
         # set range for negative samples:
-        # min = stamp n + 4 sec, max = stamp (n+1) - 4 sec
+        # min = stamp n + x sec, max = stamp (n+1) - x sec
         ms_min = min(time_stamps[n], time_stamps[n+1]) + interval
         ms_max = max(time_stamps[n], time_stamps[n+1]) - interval
         for i in range(nr_samples-1):
@@ -160,8 +164,17 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
                 neg_stamps.append(random.randint(ms_min, ms_max))
 
     code = 'NONE'
-    sample_nrs = [(x + excel_data.index[-1] + 1) for x in range(len(neg_stamps))]
-    nr_success = 0
+    target_dir = os.path.join(save_dir, code)
+    files_in_target = os.listdir(target_dir)
+    if len(files_in_target) == 0:
+        highest_sample_nr = 0
+    else:
+        project_files = [int(x.split('_')[0]) for x in files_in_target if x.split('_')[-1] == (project + '.png')]
+        highest_sample_nr = max(project_files)
+
+    sample_nrs = [(x + highest_sample_nr + 1) for x in range(len(neg_stamps))]
+
+    nr_files_before = len(files_in_target)
 
     # Open video file
     print("Opening", os.path.join(video_dir, video_file))
@@ -175,14 +188,15 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
         if success:
             save_path = os.path.join(save_dir, code, (str(sample_nr).zfill(6) + '_' + project + '.png'))
             cv2.imwrite(save_path, image)
-            nr_success = nr_success + 1
             if show:
                 cv2.imshow("saved image:", image)
                 cv2.waitKey()
         if not success:
             raise ValueError('Image was not read')
 
-    print("Saved {}/{} images to {}".format(nr_success, len(neg_stamps), save_dir + r'\NONE'))
+    nr_files_after = len(os.listdir(target_dir))
+
+    print("Saved {}/{} images to {}".format((nr_files_after-nr_files_before), len(neg_stamps), save_dir + r'\NONE'))
     print('')
 
 
@@ -218,14 +232,14 @@ def extract_frame(video_file, time=500):
 
 
 if __name__ == "__main__":
-    dir = r'E:\Data\Sur de Texas'
+    dir = r'K:\PROJECTS\SubSea Detection\12 - Data\Troll'
     print("working directory: ", dir)
-    video = (dir + r"\Video\DATA_20180322211350030")
+    video = (dir + r"\Video Line 3\DATA_20200424010632051")
     excel = excel_f.extract_excel_data(dir)
-    print(excel)
+    out_dir = r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test'
     chann = 2
-    extract_all_pos_frames('Sur de Texas', video, excel, out_dir=r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test',
+    extract_all_pos_frames('Troll', video, excel, out_dir=out_dir,
                            delay=0.000, channel=chann, show=False)
-    # extract_all_neg_frames(dir + r'\data\Troll\video\DATA_20200423140158475', excel, dir + r'\data\Samples',
-    #                        delay=0.500, channels=chann)
+    extract_all_neg_frames('Troll', video, excel, out_dir=out_dir,
+                           delay=0.000, nr_samples=5, interval=3000, channel=chann, show=False)
 
