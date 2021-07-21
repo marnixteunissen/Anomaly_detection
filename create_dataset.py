@@ -23,7 +23,7 @@ def create_dataset(project,
                    neg_samples=5,
                    extra_pos_samples=0,
                    out_dir='',
-                   split=0.2,
+                   split=0.15,
                    use_perc=1.0,
                    root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
@@ -98,10 +98,9 @@ def create_dataset(project,
                 # extracting all the frames from the video (only Field Joints for now)
                 extract_all_pos_frames(project, video_dir, data_points, output_dir,
                                        delay=delay, channel=channel, n_augment=extra_pos_samples)
-                tot_neg = (extra_pos_samples+1)*neg_samples
+                tot_neg = (extra_pos_samples + 1) * neg_samples
                 extract_all_neg_frames(project, video_dir, data_points, output_dir,
-                                       nr_samples=tot_neg,
-                                       delay=delay, channel=channel)
+                                       nr_samples=tot_neg, delay=delay, channel=channel)
 
     print('Data-set created for project', project)
 
@@ -116,15 +115,27 @@ if __name__ == "__main__":
               'Nordstream':                   1.200,
               'Sur de Texas':                 0.000}
 
-    root = os.getcwd()
-    projects = ['Troll', 'Turkstream']
+    root = 'K'
+    if root == 'H':
+        # for projects on H: drive
+        projects = ['Baltic Connector', 'Noble Tamar', 'Nordstream']
+        extras = [0, 0, 0]
+        negatives = [30, 35, 5]
+        data_dir = r'H:\Data'
+    elif root == 'K':
+        # for projects on K: drive
+        projects = ['Troll', 'Turkstream']
+        extras = [0, 0]
+        negatives = [25, 25]
+        data_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
+    else:
+        raise ValueError('Wrong root')
 
-    data_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
-    for project in projects:
+    for project, extra, negative in zip(projects, extras, negatives):
         delay = delays[project]
         create_dataset(project,
                        delay=delay,
-                       neg_samples=7,
-                       extra_pos_samples=5,
+                       neg_samples=negative,
+                       extra_pos_samples=extra,
                        root_dir=data_dir,
                        out_dir=r'E:\dataset_19_07_21')
