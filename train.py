@@ -131,31 +131,17 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
         # run test
         test(model)
 
-    i = 1
-    experiments = {}
-    experiment_list = list(itertools.product(layers, filters, kernels))
-    experiments['layers'] = layers
-    experiments['filters'] = filters
-    experiments['kernels'] = kernels
-
-
     results = {}
+    print('layers: {}, filters: {}'.format(layers, filters))
+    conf = {'n_layers': int(layers),
+            'filters': filters,
+            'image_size': image_size,
+            'batch_size': batch_size,
+            'epochs': epochs,
+            'kernel': kernels}
 
-    for l, f, k in zip(experiments['layers'], experiments['filters'], experiments['kernels']):
-        print('layers: {}, filters: {}'.format(l, f))
-        conf = {'n_layers': int(l),
-                'filters': f,
-                'image_size': image_size,
-                'batch_size': batch_size,
-                'epochs': epochs,
-                'kernel': k}
-
-        exp_finish = ex.run(config_updates=conf)
-
-        results['layers: {}, filters: {}'.format(l, f)] = exp_finish.result
-        # print('run {}/{} complete'.format(i,len(experiments)))
-
-        i = i+1
+    exp_finish = ex.run(config_updates=conf)
+    results['layers: {}, filters: {}'.format(layers, filters)] = exp_finish.result
 
 
 def run_VGG_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(),
@@ -535,9 +521,9 @@ def run_precompiled_experiments(model_type, batch_size, weights='imagenet', imag
 
 if __name__ == "__main__":
     # CNN parameters
-    layers = [14, 14, 14, 14, 12]
-    filters = [64, 128, 256, 32, 32]
-    kernels = [3, 3, 3, 5, 5]
+    layers =    [14, 16, 18, 20]
+    filters =   [16, 16, 16, 16]
+    kernel =    3
 
     # VGG parameters
     filtersvgg = [[16, 16, 32, 64, 128], [16, 32, 64, 128, 128], [32, 64, 128, 256, 256], [64, 64, 64, 64, 64, 64, 64]]
@@ -553,25 +539,29 @@ if __name__ == "__main__":
     ResNet = False
     Other = False
     epochs = 50
-    batch_size = 16
+    batch_size = 32
     image_size = (360, 640)
-    data_dir = r'E:\Anomaly_detection'
-    out_dir = r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results'
+    data_dir = r'E:\dataset_19_07_21'
+    out_dir = r'E:\Training results'
+
+    if CNN:
+        for layer, filter in zip(layers, filters):
+            run_layer_filter_experiments(layer, filter, kernels=kernel, image_size=image_size, batch_size=batch_size,
+                                         data_dir=data_dir, epochs=epochs, out_dir=out_dir)
+
     if ResNet:
-        run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
+        run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=image_size, batch_size=batch_size,
                                data_dir=data_dir, epochs=epochs,
                                out_dir=out_dir)
-    if CNN:
-        run_layer_filter_experiments(layers, filters, kernels=kernels, image_size=(640, 360), batch_size=8,
-                                     data_dir=data_dir, epochs=epochs,
-                                     out_dir=out_dir)
+
     if VGG:
-        run_VGG_experiments(layersvgg, filtersvgg, kernels=kernels, image_size=(640, 360), batch_size=8,
+        run_VGG_experiments(layersvgg, filtersvgg, kernels=kernel, image_size=image_size, batch_size=batch_size,
                             data_dir=data_dir, epochs=epochs,
                             out_dir=r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results')
     if ResNet:
-        run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=(640, 360), batch_size=8,
+        run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=image_size, batch_size=batch_size,
                                data_dir=data_dir, epochs=20)
+
     if Other:
         for arch in ['DenseNet121', 'DenseNet169', 'MobileNetV2']:
             run_precompiled_experiments(arch, batch_size=8, data_dir=data_dir,
