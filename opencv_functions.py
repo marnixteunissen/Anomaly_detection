@@ -38,7 +38,11 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     codes = excel_data["Secondary Code"].tolist()
     sample_nrs = excel_data.index.to_list()
 
-    step = 100
+    if n_augment <= 15:
+        step = 100
+    else:
+        step = 75
+
     adding_stamps = []
     adding_codes = []
     adding_idx = []
@@ -47,9 +51,13 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     else:
         last_idx = sample_nrs[-1]
 
+    cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
+    assert cap.isOpened()
+    total_ms = cap.get(cv2.CAP_PROP_FRAME_COUNT) * 1000 / cap.get(cv2.CAP_PROP_FPS)
+
     for n in range(n_augment):
         tstep = step*((-1)**n)
-        extra_stamps = [time+tstep for time in time_stamps]
+        extra_stamps = [time+tstep for time in time_stamps if ((time+tstep < total_ms) and (time+tstep >= 0))]
         adding_stamps.extend(extra_stamps)
         adding_codes.extend(codes)
         extra_idx = [idx + (n+1)*last_idx for idx in sample_nrs]
@@ -79,8 +87,6 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
             raise FileNotFoundError('Directory ', out_dir, ' was not found and not created, '
                                                            'please use existing directory or create one')
 
-    cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
-    assert cap.isOpened()
 
     for (time_stamp, code, sample_nr) in tqdm(zip(time_stamps, codes, sample_nrs), total=len(time_stamps)):
         cap.set(cv2.CAP_PROP_POS_MSEC, int(time_stamp))
@@ -166,11 +172,15 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     code = 'NONE'
     target_dir = os.path.join(save_dir, code)
     files_in_target = os.listdir(target_dir)
+
     if len(files_in_target) == 0:
         highest_sample_nr = 0
     else:
         project_files = [int(x.split('_')[0]) for x in files_in_target if x.split('_')[-1] == (project + '.png')]
-        highest_sample_nr = max(project_files)
+        if len(project_files) == 0:
+            highest_sample_nr = 0
+        else:
+            highest_sample_nr = max(project_files)
 
     sample_nrs = [(x + highest_sample_nr + 1) for x in range(len(neg_stamps))]
 
