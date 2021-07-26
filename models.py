@@ -43,6 +43,33 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
     return model
 
 
+def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', optimizer='adam'):
+    # initiate model:
+    model = keras.Sequential()
+    model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
+    model.add(layers.Conv2D(filters, kernel, activation=activation))
+    model.add(layers.Conv2D(filters, kernel, activation=activation))
+    # start building layers
+    for n in range(num_layers - 2):
+        if n % 3 == 0:
+            model.add(layers.MaxPooling2D())
+            model.add(layers.BatchNormalization())
+            filters = filters * 2
+        model.add(layers.Conv2D(filters, kernel, activation=activation))
+
+    model.add(layers.Flatten())
+    model.add(layers.Dense(128, activation=activation))
+    model.add(layers.Dense(classes))
+    model.add(layers.Softmax())
+    model.compile(
+        optimizer=optimizer,
+        loss=losses.SparseCategoricalCrossentropy(),
+        metrics=['accuracy'])
+    model.summary()
+
+    return model
+
+
 def VGG_like_network(num_layers, filters, image_size=(360, 640), kernel=5, classes=2, activation='relu', optimizer='adam'):
     # initialize model:
     model = keras.Sequential()
