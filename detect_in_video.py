@@ -14,7 +14,6 @@ from datetime import timedelta
 class FileVideoStream:
     def __init__(self, path, model_dir, queueSize=20, batch_size=32):
         self.count = 0
-        self.frame_skip = 0
         self.batch_size = batch_size
         # Counting total frames to keep track of progress
         self.frame_count = self.count_frames(path)
@@ -23,6 +22,8 @@ class FileVideoStream:
         self.stream = VideoCapture(path)
         self.stopped = False
         self.fps = self.stream.get(CAP_PROP_FPS)
+        self.frame_skip = max(math.floor(self.fps / 10 - 1), 0)
+        
         print(f"Framerate in video is {self.fps} fps, skipping {self.frame_skip} frames per iteration", flush=True)
         self.step = 1 + self.frame_skip
 
