@@ -521,8 +521,8 @@ def run_precompiled_experiments(model_type, batch_size, weights='imagenet', imag
 
 if __name__ == "__main__":
     # CNN parameters
-    layers =    [14, 16, 18, 20]
-    filters =   [16, 16, 16, 16]
+    layers =    [10, 12, 14, 16, 18, 20]
+    filters =   [16, 16, 16, 16, 16, 16]
     kernel =    3
 
     # VGG parameters
@@ -541,8 +541,8 @@ if __name__ == "__main__":
     epochs = 50
     batch_size = 32
     image_size = (360, 640)
-    data_dir = r'E:\dataset_19_07_21'
-    out_dir = r'E:\Training results'
+    data_dir = r'E:\dataset_22_07_21'
+    out_dir = r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results\23-07-2021'
 
     if CNN:
         for layer, filter in zip(layers, filters):
