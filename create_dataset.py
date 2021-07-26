@@ -119,18 +119,19 @@ if __name__ == "__main__":
     if root == 'H':
         # for projects on H: drive
         projects = ['Baltic Connector', 'Noble Tamar', 'Nordstream']
-        extras = [0, 0, 0]
-        negatives = [30, 35, 5]
+        extras = [7, 22, 0]
+        negatives = [6, 6, 6]
         data_dir = r'H:\Data'
     elif root == 'K':
         # for projects on K: drive
         projects = ['Troll', 'Turkstream']
-        extras = [0, 0]
-        negatives = [25, 25]
+        extras = [11, 7]
+        negatives = [6, 6]
         data_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
     else:
         raise ValueError('Wrong root')
 
+    dataset_dir = r'E:\dataset_22_07_21'
     for project, extra, negative in zip(projects, extras, negatives):
         delay = delays[project]
         create_dataset(project,
@@ -138,4 +139,4 @@ if __name__ == "__main__":
                        neg_samples=negative,
                        extra_pos_samples=extra,
                        root_dir=data_dir,
-                       out_dir=r'E:\dataset_19_07_21')
+                       out_dir=dataset_dir)
