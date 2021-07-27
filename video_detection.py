@@ -48,37 +48,49 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
     skipped_publications = 0
     publications_to_skip = 20
 
+    #modelProcesingTimeStart = time()
     print("Starting inference...", flush=True)
     while tf_queue.more():
         # Read input tensor for model
+        #modelProcesingTime += time()- modelProcesingTimeStart
         model_input, frame_nr = tf_queue.read()
-        frame_nr = int(frame_nr[0])
-        # Run inference on tensor:
-        pred = model(model_input).numpy()[0]
-        timestamp = first_stamp + timedelta(seconds=(frame_nr / fps))
+        if frame_nr >= 0:
+            frame_nr = int(frame_nr[0])
+            # Run inference on tensor:
+            pred = model(model_input).numpy()[0]
+            timestamp = first_stamp + timedelta(seconds=(frame_nr / fps))
 
-        # TODO: make sure class columns reflect possible other classes too
-        prob_dict['FJOK'].append(pred[0])
-        prob_dict['NONE'].append(pred[1])
-        prob_dict['timestamp'].append(timestamp)
+            # TODO: make sure class columns reflect possible other classes too
+            prob_dict['FJOK'].append(pred[0])
+            prob_dict['NONE'].append(pred[1])
+            prob_dict['timestamp'].append(timestamp)
 
-        if skipped_publications > (publications_to_skip - 1):
-            print("Progress: {:.2f} %".format((100.0 * frame_nr) / tf_queue.frame_count), flush=True)
-            skipped_publications = 0
+            if skipped_publications > (publications_to_skip - 1):
+                print("Progress: {:.2f} %".format((100.0 * frame_nr) / opencv_stream.frame_count), flush=True)
+                print("Frames in queue: %d/%d" % (tf_queue.elements_in_ocv_queue(), tf_queue.elements_in_tf_queue()))        
+                skipped_publications = 0
+            else:
+                skipped_publications += 1
         else:
-            skipped_publications += 1
+            break
 
     prob = DataFrame(prob_dict)
     end = time()
     print("execution time: {}".format(end-start))
-
+    
+    model_path_array = model_dir.split("\\")
+    model_name = model_path_array[len(model_path_array)-2]
+    model_number = model_path_array[len(model_path_array)-1]
+    model_identf = model_name + '_' + model_number
     # saving findings to csv
     vid_name = os.path.split(video_file)[-1].split('.')[0]
     # TODO: add conditional statement if predictions have already been done
     if save and save_dir is not None:
-        prob.to_csv(save_dir + '/prediction_' + vid_name + '.csv')
+        fullFileName = save_dir + '/' + model_identf + '_prediction_' + vid_name + '.csv'
     elif save and save_dir is None:
-        prob.to_csv(model_dir + '/prediction_' + vid_name + '.csv')
+        fullFileName = model_dir + '/' + model_identf + '_prediction_'  + vid_name + '.csv'
+    prob.to_csv(fullFileName)
+    print("\n Saved to: " + fullFileName)
 
 
 if __name__ == "__main__":
