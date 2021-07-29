@@ -46,7 +46,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
     start = time()
     skipped_publications = 0
-    publications_to_skip = 20
+    publications_to_skip = 50
 
     #modelProcesingTimeStart = time()
     print("Starting inference...", flush=True)
@@ -67,7 +67,7 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
 
             if skipped_publications > (publications_to_skip - 1):
                 print("Progress: {:.2f} %".format((100.0 * frame_nr) / opencv_stream.frame_count), flush=True)
-                print("Frames in queue: %d/%d" % (tf_queue.elements_in_ocv_queue(), tf_queue.elements_in_tf_queue()))        
+                #print("Frames in queue: %d/%d" % (tf_queue.elements_in_ocv_queue(), tf_queue.elements_in_tf_queue()))        
                 skipped_publications = 0
             else:
                 skipped_publications += 1
