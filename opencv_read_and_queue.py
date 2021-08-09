@@ -2,15 +2,15 @@ from threading import Thread
 from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
 from queue import Queue
 from time import time, sleep
-import tensorflow as tf
+# import tensorflow as tf
 import json
-import pandas as pd
+# import pandas as pd
 from math import floor
-import os
-import excel_functions as ex
-import matplotlib.pyplot as plt
-import datetime
-import argparse
+# import os
+# import excel_functions as ex
+# import matplotlib.pyplot as plt
+# import datetime
+# import argparse
 
 
 class OCV_stream:
