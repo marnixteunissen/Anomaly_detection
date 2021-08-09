@@ -54,25 +54,25 @@ def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
         # Read input tensor for model
         #modelProcesingTime += time()- modelProcesingTimeStart
         model_input, frame_nr = tf_queue.read()
-        if frame_nr >= 0:
-            frame_nr = int(frame_nr[0])
-            # Run inference on tensor:
-            pred = model(model_input).numpy()[0]
-            timestamp = first_stamp + timedelta(seconds=(frame_nr / fps))
-
-            # TODO: make sure class columns reflect possible other classes too
-            prob_dict['FJOK'].append(pred[0])
-            prob_dict['NONE'].append(pred[1])
-            prob_dict['timestamp'].append(timestamp)
-
-            if skipped_publications > (publications_to_skip - 1):
-                print("Progress: {:.2f} %".format((100.0 * frame_nr) / opencv_stream.frame_count), flush=True)
-                #print("Frames in queue: %d/%d" % (tf_queue.elements_in_ocv_queue(), tf_queue.elements_in_tf_queue()))        
-                skipped_publications = 0
-            else:
-                skipped_publications += 1
-        else:
+        if frame_nr < 0:
             break
+            
+        frame_nr = int(frame_nr[0])
+        # Run inference on tensor:
+        pred = model(model_input).numpy()[0]
+        timestamp = first_stamp + timedelta(seconds=(frame_nr / fps))
+
+        # TODO: make sure class columns reflect possible other classes too
+        prob_dict['FJOK'].append(pred[0])
+        prob_dict['NONE'].append(pred[1])
+        prob_dict['timestamp'].append(timestamp)
+
+        if skipped_publications > (publications_to_skip - 1):
+            print("Progress: {:.2f} %".format((100.0 * frame_nr) / opencv_stream.frame_count), flush=True)
+            #print("Frames in queue: %d/%d" % (tf_queue.elements_in_ocv_queue(), tf_queue.elements_in_tf_queue()))        
+            skipped_publications = 0
+        else:
+            skipped_publications += 1
 
     prob = DataFrame(prob_dict)
     end = time()
