@@ -91,12 +91,59 @@ def extract_video_events(excel_data, video, static_offset=0.000):
     return data_points
 
 
+def extract_all_events(project_dir):
+    # Find excel sheet in project folder:
+    print('Opening .xlsx file...')
+    dir_files = os.listdir(project_dir)
+    excel_files = [os.path.join(project_dir, file) for file in dir_files if file.endswith('.xlsx')]
+    assert len(excel_files) == 1
+    # TODO: ask for user input if len(excel_files) != 0
+
+    full_excel = pd.read_excel(excel_files[0], None)
+    print('Opened', excel_files[0])
+
+    # find the sheet with all events:
+    sheet_names = full_excel.keys()
+    event_sheets = [name for name in sheet_names if (name.lower().count('event') != 0
+                                                    or name.lower().count('observation') != 0)]
+    assert len(event_sheets) == 1
+    # TODO: user selection of appropriate sheet with all events if assertion fails
+
+    event_sheet = full_excel[event_sheets[0]]
+    columns = event_sheet.keys()
+
+    if project_dir.endswith('Troll'):
+        columns_of_interest = ['date', 'time', 'secondary code']
+    else:
+        columns_of_interest = ['date', 'time', 'primary code', 'secondary code']
+
+    # Copy the relevant columns to new dataframe:
+    columns_to_copy = []
+    for col in columns_of_interest:
+        columns_to_copy.extend([column for column in columns if column.lower().startswith(col)])
+
+    events = event_sheet[columns_to_copy]
+
+    # for debugging:
+    for col in columns_to_copy:
+        print(type(events[col][0]))
+
+    # renaming columns:
+    events.columns = columns_of_interest
+    print(events.keys())
+
+    if project.endswith('Turkstream'):
+        events['date'] = [d.date() for d in events['date']]
+
+    return events
+
+
 if __name__ == "__main__":
-    dir = os.getcwd()
-    excel = extract_excel_data(r'E:\Data\Sur de Texas')
-    print(excel)
-    data_points = extract_video_events(excel, r'E:\Data\Sur de Texas\Video\DATA_20180322211350030', static_offset=0.000)
-    print(data_points)
+    dir = os.path.join(os.getcwd(), 'data')
+    print('Working Dir:', dir)
+    project = 'Troll'
+    proj_dir = os.path.join(dir, project)
+    event_list = extract_all_events(proj_dir)
 
 
 
