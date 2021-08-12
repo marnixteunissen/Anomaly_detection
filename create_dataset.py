@@ -166,7 +166,7 @@ def create_new_dataset(project,
         # move part of data to test folder:
         print('Moving test files for {} channel'.format(channel_string))
         for cl in classes:
-            samples = os.listdir(os.path.join(channel_dir, 'train', cl))
+            samples = [sample for sample in os.listdir(os.path.join(channel_dir, 'train', cl)) if sample.endswith(project + ".png")]
             n_samples = len(samples)
             print(n_samples)
             n_test = int(test_split * n_samples)
