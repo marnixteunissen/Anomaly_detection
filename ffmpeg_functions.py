@@ -139,7 +139,7 @@ def convert_all_to_mp4(input_dir):
 
 
 if __name__ == "__main__":
-    input_dir = r'H:\Sur de Texas\ignore'
+    input_dir = r'C:\Users\MTN\Documents\Anomaly_Detection\Data\Noble Leviathan\GL-3'
     convert_all_to_mp4(input_dir)
 
 

@@ -1,21 +1,20 @@
 from threading import Thread
 from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
 from queue import Queue
-import time
-import tensorflow as tf
+from time import time, sleep
+# import tensorflow as tf
 import json
-import pandas as pd
+# import pandas as pd
 from math import floor
-import os
-import excel_functions as ex
-import matplotlib.pyplot as plt
-import datetime
-import argparse
+# import os
+# import excel_functions as ex
+# import matplotlib.pyplot as plt
+# import datetime
+# import argparse
 
 
 class OCV_stream:
     def __init__(self, path, model_dir, queueSize=16):
-        self.count = 0
         # Counting total frames to keep track of progress
         self.frame_count = self.count_frames(path)
 
@@ -25,11 +24,14 @@ class OCV_stream:
         self.fps = self.stream.get(CAP_PROP_FPS)
         self.frame_skip = max(floor(self.fps / 10 - 1), 0)
         self.step = 1 + self.frame_skip
+        
+        self.curr_frame = 0
+        self.stream.set(1, 0)
 
         # Creating Queue
         self.Q = Queue(maxsize=queueSize)
 
-        # get teh image size from the
+        # get the image size from the
         with open(model_dir + r'/config.json') as f:
             self.img_size = tuple(json.load(f)['image_size']['py/tuple'])
 
@@ -44,34 +46,34 @@ class OCV_stream:
         # keep looping infinitely
         while True:
             if self.stopped:
+                sleep(0.1)
                 return
 
             if not self.Q.full():
                 # Read the next frame
-                self.stream.set(1, self.count)
-                grabbed, frame = self.stream.read()
+                grabbed = self.stream.grab()
                 if not grabbed:
-                    self.stopped = True
+                    self.stop()
                     return
+                if self.curr_frame % self.step == 0:
+                    _, frame = self.stream.retrieve()
+                    self.Q.put((frame, self.curr_frame))
+                self.curr_frame += 1
 
-                self.Q.put((frame, self.count))
-                self.count += self.step
+            else:
+                sleep(0.01)
 
     def read(self):
         # Return next frame in the queue
         return self.Q.get()
 
-    def more(self):
-        # return True if there are still frames in the queue
-        tries = 0
-        while self.Q.qsize() == 0 and not self.stopped and tries < 5:
-            time.sleep(0.1)
-            tries += 1
-        return self.Q.qsize() > 0
+    def more(self):        
+        return not (self.Q.qsize() == 0 and self.stopped)
 
     def stop(self):
         # indicate that the thread should be stopped
         self.stopped = True
+        self.Q.put((None, -1))
 
     def count_frames(self, path, override=False):
         # grab a pointer to the video file and initialize the total
@@ -123,53 +125,3 @@ class OCV_stream:
 
         # return the total number of frames in the video file
         return total
-
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--source', type=str, default=None, help='Full path to the video file', required=True)
-    parser.add_argument('--model', type=str, default=None, help="Full path to the directory "
-                                                                "which contains the 'saved_model' directory",
-                        required=True)
-    parser.add_argument('--project', type=str, default=None, help='Name of the project the video belongs to')
-    parser.add_argument('--save', type=str, default='True', help='Choice to store the predictions as a .csv file')
-    parser.add_argument('--save_dir', type=str, default=None, help='Full path to location to store .csv file')
-    parser.add_argument('--show', type=str, default='False', help='choice to show plot of predictions')
-    opt = parser.parse_args()
-
-    if opt.source is None:
-        video = os.path.abspath(r'data/video/20180115233422036@DVR-SD-01_Ch2_Trim3.mp4')
-    elif os.path.isfile(opt.source):
-        video = opt.source
-    else:
-        raise ValueError("Video not found in {}".format(opt.source))
-
-    if opt.model is None:
-        model_dir = os.path.abspath(r'runs/Varying layers and filters/127')
-    elif os.path.isdir(opt.model + '/saved_model'):
-        model_dir = opt.model
-    else:
-        raise ValueError("model not found in folder '{}' ".format(opt.model))
-
-    projects = ["Troll", "Turkstream", "LingShui", "Nordstream", "Noble Tamar"]
-
-    if opt.project is None:
-        project = None
-    elif opt.project not in projects:
-        raise ValueError("unknown project specified, check spelling")
-    else:
-        project = opt.project
-
-    if opt.save_dir is None:
-        save_dir = None
-    elif os.path.exists(opt.save_dir):
-        save_dir = opt.save_dir
-    else:
-        os.makedirs(opt.save_dir)
-        save_dir = opt.save_dir
-
-    show_output = (opt.show.lower() == 'true')
-    save_output = (opt.save.lower() == 'true')
-
-    run_detection_multi_thread(video, model_dir, project, save_dir=save_dir, save=save_output, plot=show_output)

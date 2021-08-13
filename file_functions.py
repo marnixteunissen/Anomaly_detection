@@ -28,7 +28,8 @@ def ch(project, channels):
                             'Baltic Connector':             [2, 1, 3],
                             'Noble Tamar':                  [1, 2, 3],
                             'Nordstream':                   [1, 2, 3],
-                            'Sur de Texas':                 [1, 2, 3]})
+                            'Sur de Texas':                 [1, 2, 3],
+                            'Tulip Oil':                    [2, 3, 4]})
     if not type(channels) == list:
         channels = [channels]
     # create a list with channel numbers
@@ -100,6 +101,22 @@ def train_test_split(project_dir, test_split=0.2, startstr='Video', part=1.0):
     return train_data_dirs, test_data_dirs
 
 
+def get_video_dirs(project_dir, start_string='Video'):
+    video_dir = None
+    for entry in os.listdir(project_dir):
+        if entry.lower().startswith(start_string.lower()):
+            video_dir = os.path.join(project_dir, entry)
+        else:
+            video_dir = None
+
+    if video_dir is not None:
+        data_dirs = os.listdir(video_dir)
+        data_dirs = [os.path.join(video_dir, x) for x in data_dirs if 'DATA' in x]
+    else:
+        raise FileNotFoundError("No folder starting with 'video', or specified string was found")
+    print(data_dirs)
+    return data_dirs
+
 def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
     """
     Creates folder structure for saving the data-set
@@ -107,6 +124,8 @@ def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
     :param classes: list of str, containing the classes. Default: ["FJOK", "NONE"]
     :return:
     """
+    if "NONE" not in classes:
+        classes.append("NONE")
     for channel in ['LEFT', 'TOP', 'RIGHT']:
         if not os.path.exists(os.path.join(root_dir, channel)):
             os.mkdir(os.path.join(root_dir, channel))

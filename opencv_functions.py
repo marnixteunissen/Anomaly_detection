@@ -4,44 +4,28 @@ import excel_functions as excel_f
 import file_functions as file
 from tqdm import tqdm
 import random
+import numpy as np
 
 
-def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
-                           delay=0.000, channel=1, show=False, n_augment=0):
-    """
-    Extracts all the frames at all event times in given video for all given channels
-    :param project:     string
-                        name of the project
-    :param video_dir:   path (string)
-                        path to the directory containing the video
-    :param excel_in:    dataframe
-                        Dataframe extracted with extract_excel_data function
-    :param out_dir:     path (string)
-                        Directory to store snapshots
-    :param delay:       float, Default: 0.000 sec
-                        Time correction for video
-    :param channel:     int, Default: 1 ('TOP')
-                        the channel to extract frames from
-    :param show:        bool, Default: False
-                        bool to enable showing each picture as its being saved
-                        if enabled will wait for a key for every frame.
-    :return:
-    """
+def extract_all_event_frames(project, video_dir, excel_in, out_dir,
+                             delay=0.000, channel=1, show=False, n_augment=0, test=False):
     # Open excel data
     excel_data = excel_f.extract_video_events(excel_in, video_dir, static_offset=-delay)
-
     video_file = file.get_video_file_name(video_dir, channel)
     print("Opening", os.path.join(video_dir, video_file))
 
     # Create iterable lists for creating frames
     time_stamps = excel_data["ms in video"].tolist()
-    codes = excel_data["Secondary Code"].tolist()
+    codes = excel_data["code"].tolist()
     sample_nrs = excel_data.index.to_list()
+    print('Creating {} samples'.format(len(sample_nrs)))
 
-    if n_augment <= 15:
+    if n_augment <= 10:
         step = 100
-    else:
+    elif 10 < n_augment < 25:
         step = 75
+    else:
+        raise(ValueError('Too many extra samples selected, please stay within the [0 : 25] range'))
 
     adding_stamps = []
     adding_codes = []
@@ -52,15 +36,20 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
         last_idx = sample_nrs[-1]
 
     cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
-    assert cap.isOpened()
+    assert cap.isOpened(), 'Video was not opened'
     total_ms = cap.get(cv2.CAP_PROP_FRAME_COUNT) * 1000 / cap.get(cv2.CAP_PROP_FPS)
 
     for n in range(n_augment):
         tstep = step*((-1)**n)
-        extra_stamps = [time+tstep for time in time_stamps if ((time+tstep < total_ms) and (time+tstep >= 0))]
-        adding_stamps.extend(extra_stamps)
-        adding_codes.extend(codes)
-        extra_idx = [idx + (n+1)*last_idx for idx in sample_nrs]
+        np_stamps = np.array(time_stamps)
+        extra_stamps = [time+tstep for time in time_stamps]
+
+        valid_idx = [idx for idx, stamp in enumerate(extra_stamps) if (total_ms > stamp >= 0)]
+        adding_stamps.extend([extra_stamps[idx] for idx in valid_idx])
+        adding_codes.extend([codes[idx] for idx in valid_idx])
+
+        extra_idx = [idx + (n+1)*last_idx for idx in range(len(valid_idx))]
+        # extra_idx = [idx + (n+1)*last_idx for idx in sample_nrs]
         adding_idx.extend(extra_idx)
         if (n+1) % 2 == 0:
             step = 2 * step
@@ -68,7 +57,6 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
     time_stamps.extend(adding_stamps)
     codes.extend(adding_codes)
     sample_nrs.extend(adding_idx)
-    print('number of positives:', len(sample_nrs))
     nr_success = 0
 
     # Set output directory:
@@ -86,7 +74,6 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
         else:
             raise FileNotFoundError('Directory ', out_dir, ' was not found and not created, '
                                                            'please use existing directory or create one')
-
 
     for (time_stamp, code, sample_nr) in tqdm(zip(time_stamps, codes, sample_nrs), total=len(time_stamps)):
         cap.set(cv2.CAP_PROP_POS_MSEC, int(time_stamp))
@@ -112,30 +99,11 @@ def extract_all_pos_frames(project, video_dir, excel_in, out_dir,
 
 def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
                            delay=0.000, nr_samples=5, interval=3000, channel=2, show=False):
-    """
-    Extracts all the frames at all event times in given video for all given channels
-    :param project:     string
-                        name of the project
-    :param video_dir:   path (string)
-                        path to the video directory
-    :param excel_in:    dataframe
-                        Dataframe extracted with extract_excel_data function
-    :param out_dir:     path (string)
-                        Directory to store snapshots
-    :param delay:       float, Default: 0.000 sec
-                        Time correction for video
-    :param nr_samples:  int, Default: 5
-                        number of negative samples between positive events
-    :param interval:    int, Default: 4000 ms
-                        ms interval around event not to sample as negative
-    :param channel:     int, Default: 2
-                        channel to extract the frames from
-    :param show:        bool, Default: False
-                        bool to enable showing each picture as its being saved
-                        if enabled will wait for a key for every frame.
-    """
     # Open excel data
     excel_data = excel_f.extract_video_events(excel_in, video_dir, static_offset=-delay)
+
+    video_file = file.get_video_file_name(video_dir, channel)
+    print("Opening", os.path.join(video_dir, video_file))
 
     # Set output directory
     working_dir = os.getcwd()
@@ -153,8 +121,6 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
             raise FileNotFoundError('Directory ', out_dir, ' was not found and not created, '
                                                            'please use existing directory or create one')
 
-    video_file = file.get_video_file_name(video_dir, channel)
-
     # Creating list of positive timestamps
     time_stamps = excel_data["ms in video"].tolist()
 
@@ -162,7 +128,6 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     neg_stamps = []
     for n in range(len(time_stamps)-1):
         # set range for negative samples:
-        # min = stamp n + x sec, max = stamp (n+1) - x sec
         ms_min = min(time_stamps[n], time_stamps[n+1]) + interval
         ms_max = max(time_stamps[n], time_stamps[n+1]) - interval
         for i in range(nr_samples-1):
@@ -187,7 +152,6 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     nr_files_before = len(files_in_target)
 
     # Open video file
-    print("Opening", os.path.join(video_dir, video_file))
     cap = cv2.VideoCapture(os.path.join(video_dir, video_file))
     if not os.path.exists(save_dir):
         raise FileNotFoundError('Channel directories were not created')
@@ -210,6 +174,7 @@ def extract_all_neg_frames(project, video_dir, excel_in, out_dir,
     print('')
 
 
+# unused extra functions:
 def get_first_frame(video_file):
     """Returns the first frame of a video as an image"""
     cap = cv2.VideoCapture(video_file)
@@ -242,14 +207,22 @@ def extract_frame(video_file, time=500):
 
 
 if __name__ == "__main__":
-    dir = r'K:\PROJECTS\SubSea Detection\12 - Data\Troll'
-    print("working directory: ", dir)
-    video = (dir + r"\Video Line 3\DATA_20200424010632051")
-    excel = excel_f.extract_excel_data(dir)
-    out_dir = r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test'
-    chann = 2
-    extract_all_pos_frames('Troll', video, excel, out_dir=out_dir,
-                           delay=0.000, channel=chann, show=False)
-    extract_all_neg_frames('Troll', video, excel, out_dir=out_dir,
-                           delay=0.000, nr_samples=5, interval=3000, channel=chann, show=False)
+    dir = r''
+    video = r'C:\Users\MTN\Documents\Anomaly_Detection\Data\Tulip Oil\Video\DATA_20180620122949270'
+    proj_dir = r'C:\Users\MTN\Documents\Anomaly_Detection\Data\Tulip Oil'
+    excel =  excel_f.get_event_types(proj_dir, ['FJOK', "PBOK"])
+    out = r'C:\Users\MTN\Documents\Anomaly_Detection\Anomaly_detection\data\test'
+    extract_all_event_frames('Tulip Oil', video, excel, out, test=True, n_augment=0, channel=3, delay=1.2)
+    extract_all_neg_frames('Tulip Oil', video, excel, out, channel=3, delay=1.2)
+
+    # dir = r'K:\PROJECTS\SubSea Detection\12 - Data\Troll'
+    # print("working directory: ", dir)
+    # video = (dir + r"\Video Line 3\DATA_20200424010632051")
+    # excel = excel_f.extract_excel_data(dir)
+    # out_dir = r'C:\Users\MTN\PycharmProjects\Survey_anomaly_detection\pycharm\Anomaly_detection\data\test'
+    # chann = 2
+    # extract_all_pos_frames('Troll', video, excel, out_dir=out_dir,
+    #                        delay=0.000, channel=chann, show=False)
+    # extract_all_neg_frames('Troll', video, excel, out_dir=out_dir,
+    #                        delay=0.000, nr_samples=5, interval=3000, channel=chann, show=False)
 
