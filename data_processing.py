@@ -2,7 +2,7 @@ import os
 import tensorflow.keras.preprocessing as preprocessing
 
 
-def create_data_sets(data_dir, channel, mode, batch_size=8, image_size=(640, 360), split=0.2):
+def create_data_sets(data_dir, channel, mode, batch_size=8, image_size=(640, 360), split=0.15):
     data_dir = os.path.join(data_dir, channel, mode)
     width, height = image_size[0], image_size[1]
     train_ds = preprocessing.image_dataset_from_directory(

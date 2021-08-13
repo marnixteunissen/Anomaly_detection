@@ -44,10 +44,11 @@ def create_datasets(data_dir, img_size, batch_size):
     return train_data, val_data
 
 
-def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(), epochs=3, deep=False):
+def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(),
+                                 epochs=3, deep=False, pool=False):
     if data_dir is None:
         data_dir = os.getcwd() + r'\data\data-set'
-    run_path = os.path.join(out_dir, 'runs')
+    run_path = os.path.join(out_dir)
 
     ex = Experiment('Varying layers and filters')
     ex.observers.append(FileStorageObserver(basedir=os.path.join(run_path, ex.path)))
@@ -72,7 +73,7 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
     @ex.capture
     def build_model(n_layers, filters, image_size, kernel):
         if deep:
-            model = models.build_deep_CNN(n_layers, filters, kernel=kernel, image_size=image_size)
+            model = models.build_deep_CNN(n_layers, filters, kernel=kernel, image_size=image_size, pool=pool)
         else:
             model = models.build_conv_network(n_layers, filters, kernel=kernel, image_size=image_size)
         return model
@@ -81,16 +82,19 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
     def train(model, train_ds, val_ds, epochs):
         # create callback to save best model:
         save_best = tf.keras.callbacks.ModelCheckpoint(
-            filepath=os.path.join(ex.observers[0].dir, 'saved_model/best'),
+            filepath=os.path.join(ex.observers[0].dir, 'saved_model/best/best_model.h5'),
             save_weights_only=False,
             monitor='val_accuracy',
             mode='max',
             save_best_only=True)
         # add early stopping criterion:
-        early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
+        if deep:
+            early_stop = tf.keras.callbacks.EarlyStopping(patience=3)
+        else:
+            early_stop = tf.keras.callbacks.EarlyStopping(patience=8)
         # start training:
         history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=[save_best, early_stop])
-        model.save(os.path.join(ex.observers[0].dir, 'saved_model/'))
+        model.save(os.path.join(ex.observers[0].dir, 'saved_model/last_model.h5'))
 
         return history
 
@@ -524,14 +528,15 @@ def run_precompiled_experiments(model_type, batch_size, weights='imagenet', imag
 
 if __name__ == "__main__":
     # CNN parameters
-    layers =    [10, 12, 14, 16, 18, 20]
-    filters =   [16, 16, 16, 16, 16, 16]
+    layers =    [14]
+    filters =   [16]
     kernel =    3
 
     # deep CNN param
-    dlayers = [25]
-    dfilters = [16]
-    kernel = 3
+    dlayers = [22]
+    dfilters = [8]
+    # option to change the GlobalAveragePooling layer to a flatten layer (also change in line 568):
+    pool = [True]
 
     # VGG parameters
     filtersvgg = [[16, 16, 32, 64, 128], [16, 32, 64, 128, 128], [32, 64, 128, 256, 256], [64, 64, 64, 64, 64, 64, 64]]
@@ -547,11 +552,11 @@ if __name__ == "__main__":
     VGG = False
     ResNet = False
     Other = False
-    epochs = 50
+    epochs = 30
     batch_size = 32
     image_size = (360, 640)
     data_dir = r'E:\dataset_22_07_21'
-    out_dir = r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results\23-07-2021'
+    out_dir = r'K:\PROJECTS\SubSea Detection\10 - Development\Training Results\09-08-2021'
 
     if CNN:
         for layer, filter in zip(layers, filters):
@@ -559,9 +564,9 @@ if __name__ == "__main__":
                                          data_dir=data_dir, epochs=epochs, out_dir=out_dir)
 
     if DCNN:
-        for layer, filter in zip(dlayers, dfilters):
+        for layer, filter, p in zip(dlayers, dfilters, pool):
             run_layer_filter_experiments(layer, filter, kernels=kernel, image_size=image_size, batch_size=batch_size,
-                                         data_dir=data_dir, epochs=epochs, out_dir=out_dir, deep=True)
+                                         data_dir=data_dir, epochs=epochs, out_dir=out_dir, deep=True, pool=p)
 
     if ResNet:
         run_ResNet_experiments(num_blocks, num_layers, num_filters, image_size=image_size, batch_size=batch_size,

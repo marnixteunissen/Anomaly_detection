@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras.models import Model
-from tensorflow.keras import layers
+from tensorflow.keras import layers, optimizers
 from tensorflow.keras.layers import Dense, MaxPooling2D, Conv2D, Flatten, \
     BatchNormalization, Activation, GlobalAveragePooling2D, DepthwiseConv2D, Softmax, \
     Dropout, ReLU, Concatenate, Conv2DTranspose, Input, Add, AveragePooling2D, ZeroPadding2D
@@ -13,9 +13,10 @@ import data_processing
 import os
 
 
-def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', optimizer='adam'):
+def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu'):
     # initialize model:
     model = keras.Sequential()
+    optimizer = optimizers.Adam(amsgrad=True)
     # Normalising layer:
     model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
@@ -43,23 +44,28 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
     return model
 
 
-def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', optimizer='adam'):
+def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', pool=True):
     # initiate model:
     model = keras.Sequential()
+    optimizer = optimizers.Adam(amsgrad=True)
     model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     model.add(layers.Conv2D(filters, kernel, activation=activation))
     model.add(layers.Conv2D(filters, kernel, activation=activation))
     # start building layers
     for n in range(num_layers - 2):
-        if n % 3 == 0:
+        if n % 7 == 0:
             model.add(layers.MaxPooling2D())
             model.add(layers.BatchNormalization())
             filters = filters * 2
         model.add(layers.Conv2D(filters, kernel, activation=activation))
 
-    model.add(layers.Flatten())
+    if pool:
+        model.add(layers.GlobalMaxPool2D())
+    else:
+        model.add(layers.Flatten())
+
     model.add(layers.Dense(128, activation=activation))
-    model.add(layers.Dense(classes))
+    model.add(layers.Dense(classes, activation=activation))
     model.add(layers.Softmax())
     model.compile(
         optimizer=optimizer,
@@ -75,7 +81,7 @@ def VGG_like_network(num_layers, filters, image_size=(360, 640), kernel=5, class
     model = keras.Sequential()
     # Normalising layer:
     # model.add(layers.experimental.preprocessing.Rescaling(1. / 255, input_shape=(image_size[0], image_size[1], 3)))
-    model.add(layers.BatchNormalization(input_shape=(image_size[1], image_size[0], 3)))
+    model.add(layers.BatchNormalization(input_shape=(image_size[0], image_size[1], 3)))
     # construct network:
     for i in range(num_layers):
         model.add(layers.Conv2D(filters[i], kernel))
