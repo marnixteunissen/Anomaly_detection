@@ -18,7 +18,6 @@ def extract_all_event_frames(project, video_dir, excel_in, out_dir,
     time_stamps = excel_data["ms in video"].tolist()
     codes = excel_data["code"].tolist()
     sample_nrs = excel_data.index.to_list()
-    print('Creating {} samples'.format(len(sample_nrs)))
 
     if n_augment <= 10:
         step = 100
@@ -57,6 +56,7 @@ def extract_all_event_frames(project, video_dir, excel_in, out_dir,
     time_stamps.extend(adding_stamps)
     codes.extend(adding_codes)
     sample_nrs.extend(adding_idx)
+    print('Creating {} samples'.format(len(sample_nrs)))
     nr_success = 0
 
     # Set output directory:
