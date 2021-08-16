@@ -90,15 +90,8 @@ def create_dataset(project,
     print('Data-set created for project', project)
 
 
-def create_new_dataset(project,
-                       channel_idx=1,
-                       classes=['FJOK'],
-                       delay=0.000,
-                       neg_samples=5,
-                       extra_pos_samples=0,
-                       out_dir='',
-                       test_split=0.15,
-                       root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
+def create_new_dataset(project, channel_idx=1, classes=['FJOK'], delay=0.000, neg_samples=5, extra_pos_samples=0,
+                       out_dir='', test_split=0.2, root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
     # Getting correct channel names:
     channels, ch_str = ch(project, channel_idx)
@@ -146,7 +139,10 @@ def create_new_dataset(project,
 
     print('Saving dataset to:', save_dir)
 
+    # Extract all the events of the specified classes:
     data_points = get_event_types(project_dir, event_types=classes)
+
+    # Get a list of all the video directories to extract frames from
     data_dirs = get_video_dirs(project_dir)
 
     # Create the full data-set in train folder:
@@ -168,9 +164,8 @@ def create_new_dataset(project,
         for cl in classes:
             samples = [sample for sample in os.listdir(os.path.join(channel_dir, 'train', cl)) if sample.endswith(project + ".png")]
             n_samples = len(samples)
-            print(n_samples)
             n_test = int(test_split * n_samples)
-            print(n_test)
+            print('{} samples of class {}, moving {} to test set'.format(n_samples, cl, n_test))
             shuffle(samples)
             for file in samples[:n_test]:
                 source = os.path.join(channel_dir, 'train', cl, file)
@@ -206,9 +201,10 @@ if __name__ == "__main__":
         data_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
     elif root == 'Other':
         projects = ['Tulip Oil']
-        extras = [0]
-        negatives = [0]
+        extras = [7]
+        negatives = [16]
         data_dir = r'C:\Users\MTN\Documents\Anomaly_Detection\Data'
+        out_dir = r'C:\Users\MTN\Documents\Anomaly_Detection\Data\data-sets\u8'
     else:
         raise ValueError('Wrong root')
 
@@ -218,7 +214,7 @@ if __name__ == "__main__":
                        delay=delays[projects[0]],
                        neg_samples=negatives[0],
                        extra_pos_samples=extras[0],
-                       out_dir='',
+                       out_dir=out_dir,
                        test_split=0.15,
                        root_dir=data_dir)
     # for project, extra, negative in zip(projects, extras, negatives):
