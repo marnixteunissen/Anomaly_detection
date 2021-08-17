@@ -24,7 +24,7 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50, optimizer='adam'):
     copy(conf, conf_dest)
 
     # create new dataset
-    train_set, val_set = train.create_datasets(data_dir, img_size, batch_size)
+    train_set, val_set, num_classes = train.create_datasets(data_dir, img_size, batch_size)
     test_set = data.create_test_set(data_dir, 'TOP', img_size)
 
     # Import pre_trained model
@@ -47,7 +47,7 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50, optimizer='adam'):
     # Create new top layers
     pool_layer = layers.GlobalMaxPool2D()
     dense_layer = layers.Dense(128, activation='relu')
-    prediction_layer = layers.Dense(classes, activation='relu')
+    prediction_layer = layers.Dense(num_classes, activation='relu')
     outputs = layers.Softmax()
 
     # Create new model
