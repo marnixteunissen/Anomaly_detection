@@ -38,10 +38,12 @@ def save_losses(history, save_path):
 
 
 def create_datasets(data_dir, img_size, batch_size):
-    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size, image_size=img_size)
+    train_data, val_data = data_processing.create_data_sets(data_dir, 'TOP', 'train', batch_size,
+                                                                         image_size=img_size)
+    num_classes = len(train_data.class_names)
     train_data = train_data.prefetch(tf.data.AUTOTUNE)
     val_data = val_data.prefetch(tf.data.AUTOTUNE)
-    return train_data, val_data
+    return train_data, val_data, num_classes
 
 
 def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernels, data_dir=None, out_dir=os.getcwd(),
@@ -71,11 +73,13 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
         kernel = []
 
     @ex.capture
-    def build_model(n_layers, filters, image_size, kernel):
+    def build_model(n_layers, filters, image_size, kernel, num_classes):
         if deep:
-            model = models.build_deep_CNN(n_layers, filters, kernel=kernel, image_size=image_size, pool=pool)
+            model = models.build_deep_CNN(n_layers, filters, kernel=kernel, image_size=image_size, pool=pool,
+                                          classes=num_classes)
         else:
-            model = models.build_conv_network(n_layers, filters, kernel=kernel, image_size=image_size)
+            model = models.build_conv_network(n_layers, filters, kernel=kernel, image_size=image_size,
+                                              classes=num_classes)
         return model
 
     @ex.capture
@@ -120,11 +124,11 @@ def run_layer_filter_experiments(layers, filters, image_size, batch_size, kernel
     def main():
         # Get data
         print('Creating data-sets...')
-        train_ds, val_ds = create_datasets(data_dir, image_size, batch_size)
+        train_ds, val_ds, num_classes = create_datasets(data_dir, image_size, batch_size)
 
         # build network
         print('Building model...')
-        model = build_model()
+        model = build_model(num_classes=num_classes)
 
         # train network
         print('Training network:')
