@@ -7,16 +7,8 @@ from shutil import move
 import argparse
 
 
-def create_dataset(project,
-                   channel_idx=1,
-                   classes='Field Joint',
-                   delay=0.000,
-                   neg_samples=5,
-                   extra_pos_samples=0,
-                   out_dir='',
-                   split=0.15,
-                   use_perc=1.0,
-                   root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
+def create_dataset(project, channel_idx=1, classes='Field Joint', delay=0.000, neg_samples=5, extra_pos_samples=0,
+                   out_dir='', split=0.15, use_perc=1.0, root_dir=r'K:\PROJECTS\SubSea Detection\12 - Data'):
 
     # Getting correct channel names:
     channels, ch_str = ch(project, channel_idx)
