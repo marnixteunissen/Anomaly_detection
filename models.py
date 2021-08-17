@@ -54,7 +54,7 @@ def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes
     # start building layers
     for n in range(num_layers - 2):
         # For model nr 41, best so far, maxpooling was added every 6 convolutional layers
-        if n % 7 == 0:
+        if n % 6 == 0:
             model.add(layers.MaxPooling2D())
             model.add(layers.BatchNormalization())
             filters = filters * 2
