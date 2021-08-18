@@ -21,9 +21,17 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50):
     conf_dest = ret_dir + '/config.json'
     copy(conf, conf_dest)
 
-    # create new dataset
+    # create new datasets
     train_set, val_set, num_classes = train.create_datasets(data_dir, img_size, batch_size)
-    test_set = data.create_test_set(data_dir, 'TOP', img_size)
+    try:
+        test_set = data.create_test_set(data_dir, 'TOP', img_size)
+    except ValueError('No images found.'):
+        print("No files were found in the test directory, skipping testing")
+        test = False
+    except:
+        print("Test set could not be created for unknown reason")
+    else:
+        test = True
 
     # Import pre_trained model
     print("Loading Model...", flush=True)
@@ -79,7 +87,8 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50):
     print("Total training time: {}".format(finish_time-start_time))
     new_model.save(join(ret_dir, 'saved_model', 'last_model.h5'))
     train.save_losses(history, (ret_dir + '/losses.png'))
-    new_model.evaluate(test_set)
+    if test:
+        new_model.evaluate(test_set)
 
 
 if __name__ == "__main__":
