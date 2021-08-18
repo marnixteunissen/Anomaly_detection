@@ -27,8 +27,6 @@ def save_losses(history, save_path):
 
 
 def create_datasets(data_dir, img_size, batch_size, channel):
-    # ch_str = ["LEFT", "TOP", "RIGHT"]
-    # channel = ch_str[channel_idx]
     train_data, val_data = data_processing.create_data_sets(data_dir, channel, 'train', batch_size, image_size=img_size)
     num_classes = len(train_data.class_names)
     assert len(train_data.class_names) == len(val_data.class_names)

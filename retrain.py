@@ -2,9 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras import layers, Input, Model, losses, optimizers
 from os import listdir, makedirs
-from os.path import join, exists
+from os.path import join
 import argparse
-import excel_functions as ex
 import data_processing as data
 from time import time
 from datetime import datetime
@@ -12,9 +11,8 @@ import train
 from shutil import copy
 
 
-def retrain(model_dir, data_dir='', batch_size=32, epochs=50, optimizer='adam'):
+def retrain(model_dir, data_dir='', batch_size=32, epochs=50):
     # TODO: get config from file
-    classes = 2
     img_size = (360, 640)
     now = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     ret_dir = model_dir + '/retrain/' + now
@@ -45,7 +43,6 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50, optimizer='adam'):
     base_model.trainable = False
 
     # Create new top layers
-    pool_layer = layers.GlobalMaxPool2D()
     dense_layer = layers.Dense(128, activation='relu')
     prediction_layer = layers.Dense(num_classes, activation='relu')
     outputs = layers.Softmax()
@@ -53,7 +50,6 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50, optimizer='adam'):
     # Create new model
     inputs = Input(shape=(img_size[0], img_size[1], 3))
     x = base_model(inputs, training=False)
-    # x = pool_layer(x)
     x = dense_layer(x)
     x = prediction_layer(x)
     output = outputs(x)
