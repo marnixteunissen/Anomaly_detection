@@ -5,13 +5,6 @@ import pandas as pd
 import json
 
 
-# Channels are different per projects:
-#CHANNELS = pd.DataFrame({'POS': ['LEFT', 'TOP', 'RIGHT'],
-#                         'LingShui':    [3, 2, 4],
-#                         'Troll':       [1, 2, 3],
-#                         'Turkstream':  [3, 2, 4]})
-
-
 def ch(project, channels):
     """
     Maps the given video channels to the videostreams in the project.
@@ -118,6 +111,7 @@ def get_video_dirs(project_dir, start_string='Video'):
         raise FileNotFoundError("No folder starting with 'video', or specified string was found")
     print(data_dirs)
     return data_dirs
+
 
 def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
     """
