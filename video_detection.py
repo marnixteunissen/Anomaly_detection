@@ -113,7 +113,10 @@ class OCV_stream:
 
         # get the image size from the
         with open(model_dir + r'/config.json') as f:
-            self.img_size = tuple(load(f)['image_size']['py/tuple'])
+            try:
+                self.img_size = tuple(load(f)['image_size']['py/tuple'])
+            except:
+                self.img_size = tuple(load(f)['image size'])
 
     def start(self):
         # Start thread to read frames
