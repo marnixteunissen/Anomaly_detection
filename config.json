@@ -1,7 +1,7 @@
 {
   "__doc__": "This is the configuration of the training run",
   "output directory": "a",
-  "model name": "The one model to rule them all",
+  "model name": "test_model",
   "video channels": ["TOP"],
   "number of layers": 22,
   "number of filters": 8,
