@@ -111,9 +111,11 @@ def train_network(conf_file=None):
         model = models.build_deep_CNN(num_layers, num_filters, img_size, kernel, num_classes)
 
         # Save model structure summary:
-        sys.stdout = open(os.path.join(full_model_path, "model_summary.txt"), "w")
-        model.summary()
-        sys.stdout.close()
+        original_stdout = sys.stdout
+        with open(os.path.join(full_model_path, "model_summary.txt"), "w") as f:
+            sys.stdout = f
+            model.summary()
+            sys.stdout = original_stdout
 
         # Defining callbacks for training:
         save_best = tf.keras.callbacks.ModelCheckpoint(
