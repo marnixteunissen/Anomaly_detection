@@ -30,6 +30,7 @@ def retrain(model_dir, data_dir='', batch_size=32, epochs=50):
         test = False
     except:
         print("Test set could not be created for unknown reason")
+        test = False
     else:
         test = True
 
