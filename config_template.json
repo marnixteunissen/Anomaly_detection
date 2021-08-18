@@ -1,0 +1,15 @@
+{
+  "__doc__": "This is the configuration of the training run",
+  "output directory": "a",
+  "model name": "test_model",
+  "video channels": ["TOP"],
+  "number of layers": 22,
+  "number of filters": 8,
+  "kernel size": 3,
+  "batch size": 32,
+  "data directory": "C:\\Users\\MTN\\Documents\\Anomaly_Detection\\Data\\data-sets\\x1",
+  "epochs": 2,
+  "image size": [360, 640],
+  "net architecture": "Deep CNN",
+  "notes": ""
+}
