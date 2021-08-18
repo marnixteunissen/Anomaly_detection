@@ -2,6 +2,8 @@ import os
 import numpy
 import random
 import pandas as pd
+import json
+
 
 # Channels are different per projects:
 #CHANNELS = pd.DataFrame({'POS': ['LEFT', 'TOP', 'RIGHT'],
@@ -137,14 +139,48 @@ def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
                     os.mkdir(os.path.join(root_dir, channel, mode, c))
 
 
+def check_config(config):
+    # Check if all items are filled in:
+    if None in config.values():
+        key = list(config.keys())[list(config.values()).index("")]
+        raise ValueError(f"Value for {key} not added")
+    elif "" in config.values():
+        key = list(config.keys())[list(config.values()).index(None)]
+        raise ValueError(f"Value for {key} not added")
+
+    # Check if types are correct:
+    data_types = {"__doc__":             str,
+                  "Output directory":    str,
+                  "video channels":      str,
+                  "number of layers":    int,
+                  "number of filters":   int,
+                  "kernel size":         int,
+                  "batch size":          int,
+                  "data directory":      str,
+                  "epochs":              int,
+                  "image size":          list,
+                  "net architecture":    str}
+
+    # Check if keys in config and types are the same
+    assert data_types.keys() == config.keys(), "Change in config file keys detected, please check keys"
+
+    for key in config.keys():
+        if not isinstance(config[key], data_types[key]):
+            raise(TypeError, f"The type of {config[key]} is {type(config[key])}, while it should be {data_types[key]}")
+    print("config file has correct formatting")
+
+
 if __name__ == "__main__":
     # root_dir = r'K:\PROJECTS\SubSea Detection\12 - Data'
     # project_dir = os.path.join(root_dir, 'LingShui')
     # train_data_dirs, test_data_dirs = train_test_split(project_dir)
     # print(train_data_dirs)
     # print(test_data_dirs)
-    channel, string = ch('Turkstream', [2, 0])
-    print('string =', string)
-    print('channel nr =', channel)
-
-
+    # channel, string = ch('Turkstream', [2, 0])
+    # print('string =', string)
+    # print('channel nr =', channel)
+    f = "config.json"
+    file = open(f)
+    config = json.load(file)
+    print("Opened configuration from {}".format(f))
+    check_config(config)
