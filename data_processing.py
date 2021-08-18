@@ -4,20 +4,20 @@ import tensorflow.keras.preprocessing as preprocessing
 
 def create_data_sets(data_dir, channel, mode, batch_size=8, image_size=(360, 640), split=0.15):
     data_dir = os.path.join(data_dir, channel, mode)
-    width, height = image_size[1], image_size[0]
+    height, width = image_size[0], image_size[1]
     train_ds = preprocessing.image_dataset_from_directory(
         data_dir,
         validation_split=split,
         subset="training",
         seed=123,
-        image_size=(width, height),
+        image_size=(height, width),
         batch_size=batch_size)
     val_ds = preprocessing.image_dataset_from_directory(
         data_dir,
         validation_split=split,
         subset="validation",
         seed=123,
-        image_size=(width, height),
+        image_size=(height, width),
         batch_size=batch_size)
 
     return train_ds, val_ds
@@ -25,11 +25,11 @@ def create_data_sets(data_dir, channel, mode, batch_size=8, image_size=(360, 640
 
 def create_test_set(data_dir, channel, image_size=(360, 640), batch_size=1):
     data_dir = os.path.join(data_dir, channel, 'test')
-    width, height = image_size[1], image_size[0]
+    height, width = image_size[0], image_size[1]
     test_ds = preprocessing.image_dataset_from_directory(
         data_dir,
         seed=123,
-        image_size=(width, height),
+        image_size=(height, width),
         batch_size=batch_size)
 
     return test_ds
