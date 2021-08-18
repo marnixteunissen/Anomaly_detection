@@ -9,23 +9,40 @@ from time import time
 from datetime import datetime
 import train
 from shutil import copy
+import json
 
 
-def retrain(model_dir, data_dir='', batch_size=32, epochs=50):
-    # TODO: get config from file
-    img_size = (360, 640)
+def retrain(model_dir, data_dir='', epochs=50):
+    yes = {'yes', 'y', 'ye', ''}
     now = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     ret_dir = model_dir + '/retrain/' + now
     makedirs(ret_dir)
     conf = model_dir + '/config.json'
     conf_dest = ret_dir + '/config.json'
     copy(conf, conf_dest)
+    file = open(conf_dest)
+    config = json.load(file)
+    img_size = config["image size"]
+    channel = config['trained channel']
+    num_classes_config = config['number of classes']
+    batch_size = config['batch size']
+    config['epochs'] = epochs
 
     # create new datasets
-    train_set, val_set, num_classes = train.create_datasets(data_dir, img_size, batch_size)
+    train_set, val_set, num_classes = train.create_datasets(data_dir, img_size, batch_size, channel)
+    if not num_classes_config == num_classes:
+        print(f"The original model was trained on {num_classes_config} classes, "
+                       f"while the new dataset contains {num_classes} classes.")
+        choice = input("Do you want to proceed?").lower()
+        if choice in yes:
+            pass
+        else:
+            raise Exception('Training aborted')
+
+    # Try making a test set, if no images are available testing will be skipped:
     try:
-        test_set = data.create_test_set(data_dir, 'TOP', img_size)
-    except ValueError('No images found.'):
+        test_set = data.create_test_set(data_dir, channel, img_size)
+    except ValueError:
         print("No files were found in the test directory, skipping testing")
         test = False
     except:
@@ -101,5 +118,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default=None,
                         help="Full path to the directory which contains the 'saved_model' directory",
                         required=False)
+    parser.add_argument('--epochs', type=int, default=30,
+                        help="number of epochs to run retraining", required=False)
     opt = parser.parse_args()
-    retrain(opt.model, opt.data, batch_size=16)
+    retrain(opt.model, opt.data, opt.epochs)
