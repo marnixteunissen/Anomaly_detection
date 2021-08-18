@@ -141,33 +141,37 @@ def create_channel_folders(root_dir, classes=["FJOK", "NONE"]):
 
 def check_config(config):
     # Check if all items are filled in:
-    if None in config.values():
-        key = list(config.keys())[list(config.values()).index("")]
-        raise ValueError(f"Value for {key} not added")
-    elif "" in config.values():
-        key = list(config.keys())[list(config.values()).index(None)]
-        raise ValueError(f"Value for {key} not added")
+    keys = list(config.keys())
+    values = list(config.values())
+    if None in keys[:12]:
+        key = keys[list.index(None)]
+        raise ValueError(f"Value for {key} not entered")
+    elif "" in values[:12]:
+        key = keys[values.index("")]
+        raise ValueError(f"Value for {key} not entered")
 
     # Check if types are correct:
-    data_types = {"__doc__":             str,
-                  "Output directory":    str,
-                  "video channels":      str,
-                  "number of layers":    int,
-                  "number of filters":   int,
-                  "kernel size":         int,
-                  "batch size":          int,
-                  "data directory":      str,
-                  "epochs":              int,
-                  "image size":          list,
-                  "net architecture":    str}
+    data_types = {"__doc__":            str,
+                  "output directory":   str,
+                  "model name":         str,
+                  "video channels":     list,
+                  "number of layers":   int,
+                  "number of filters":  int,
+                  "kernel size":        int,
+                  "batch size":         int,
+                  "data directory":     str,
+                  "epochs":             int,
+                  "image size":         list,
+                  "net architecture":   str,}
 
     # Check if keys in config and types are the same
-    assert data_types.keys() == config.keys(), "Change in config file keys detected, please check keys"
+    assert list(data_types.keys()) == keys[:12], "Change in config file keys detected, please check keys"
 
-    for key in config.keys():
+    for key in keys[:12]:
         if not isinstance(config[key], data_types[key]):
-            raise(TypeError, f"The type of {config[key]} is {type(config[key])}, while it should be {data_types[key]}")
+            raise TypeError(f"The type of {key} is {type(config[key])}, while it should be {data_types[key]}")
     print("config file has correct formatting")
+    print("")
 
 
 if __name__ == "__main__":
