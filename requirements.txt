@@ -10,4 +10,4 @@ tensorflow-datasets
 sacred
 scipy
 imutils
-cxfreeze
+cx_freeze
