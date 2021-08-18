@@ -4,9 +4,10 @@ numpy
 opencv-python
 tqdm
 tensorflow
-Pillow >= 8.0
+Pillow
 matplotlib
 tensorflow-datasets
 sacred
 scipy
 imutils
+cxfreeze
