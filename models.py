@@ -44,7 +44,7 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
     return model
 
 
-def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', pool=True):
+def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', pool=False):
     # initiate model:
     model = keras.Sequential()
     optimizer = optimizers.Adam(amsgrad=True)
