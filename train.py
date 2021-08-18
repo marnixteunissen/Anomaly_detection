@@ -89,11 +89,6 @@ def train_network(conf_file=None):
         os.makedirs(full_model_path)
         conf_path = os.path.join(full_model_path, "config.json")
         results_path = os.path.join(full_model_path, "results.json")
-        config['channels'] = channel
-        with open(conf_path, "w") as fp:
-            json.dump(config, fp, indent="")
-            if not os.path.exists(conf_path):
-                raise FileExistsError("Config file was not created, check writing privileges")
 
         # Create the training and validation datasets:
         print(f"Creating datasets for {channel} channel")
@@ -102,6 +97,14 @@ def train_network(conf_file=None):
         print(f"Creating test-dataset for {channel} channel")
         test_data = data_processing.create_test_set(data_dir, channel, img_size)
         print("")
+
+        # Saving more configuration parameters
+        config['trained channel'] = channel
+        config['number of classes'] = num_classes
+        with open(conf_path, "w") as fp:
+            json.dump(config, fp, indent="")
+            if not os.path.exists(conf_path):
+                raise FileExistsError("Config file was not created, check writing privileges")
 
         # Creating the model:
         # Changes in the architecture should be implemented in the models.py file
