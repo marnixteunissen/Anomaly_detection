@@ -5,6 +5,7 @@
   "video channels": ["TOP"],
   "number of layers": 22,
   "number of filters": 8,
+  "maxpool frequency": 5,
   "kernel size": 3,
   "batch size": 32,
   "data directory": "C:\\Users\\MTN\\Documents\\Anomaly_Detection\\Data\\data-sets\\x1",

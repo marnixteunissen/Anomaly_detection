@@ -44,7 +44,7 @@ def build_conv_network(num_layers, filters, image_size=(360, 640), kernel=3, cla
     return model
 
 
-def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', pool=False):
+def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes=2, activation='relu', pool=False, skip=5):
     # initiate model:
     model = keras.Sequential()
     optimizer = optimizers.Adam(amsgrad=True)
@@ -54,7 +54,7 @@ def build_deep_CNN(num_layers, filters, image_size=(360, 640), kernel=3, classes
     # start building layers
     for n in range(num_layers - 2):
         # For model nr 41, best so far, maxpooling was added every 5 convolutional layers
-        if n % 5 == 0:
+        if n % skip == 0:
             model.add(layers.MaxPooling2D())
             model.add(layers.BatchNormalization())
             filters = filters * 2

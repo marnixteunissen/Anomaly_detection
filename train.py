@@ -72,6 +72,7 @@ def train_network(conf_file=None):
     batch_size = config["batch size"]
     epochs = config['epochs']
     img_size = config["image size"]
+    skip = config['maxpool frequency']
 
     # Check if path to dataset is set:
     if not os.path.exists(config["data directory"]):
@@ -109,7 +110,7 @@ def train_network(conf_file=None):
         # Creating the model:
         # Changes in the architecture should be implemented in the models.py file
         # TODO: have net_architecture option determine what type of model is built
-        model = models.build_deep_CNN(num_layers, num_filters, img_size, kernel, num_classes)
+        model = models.build_deep_CNN(num_layers, num_filters, img_size, kernel, num_classes, skip)
 
         # Save model structure summary:
         original_stdout = sys.stdout

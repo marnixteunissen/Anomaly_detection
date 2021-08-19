@@ -1,15 +1,15 @@
 {
   "__doc__": "This is the configuration of the training run",
-  "output directory": "a",
-  "model name": "test_model",
+  "output directory": "K:\\PROJECTS\\SubSea Detection\\10 - Development\\Training Results",
+  "model name": "New_best_model",
   "video channels": ["TOP"],
   "number of layers": 22,
   "number of filters": 8,
   "kernel size": 3,
   "batch size": 32,
-  "data directory": "C:\\Users\\MTN\\Documents\\Anomaly_Detection\\Data\\data-sets\\x1",
-  "epochs": 2,
-  "image size": [360, 640],
+  "data directory": "E:\\dataset_22_07_21",
+  "epochs": 50,
+  "image size": [360, 360],
   "net architecture": "Deep CNN",
-  "notes": ""
+  "notes": "This model now uses cropped, square inputs"
 }
