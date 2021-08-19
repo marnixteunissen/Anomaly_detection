@@ -5,6 +5,7 @@ import file_functions as file
 from tqdm import tqdm
 import random
 import numpy as np
+import shutil
 
 
 def extract_all_event_frames(project, video_dir, excel_in, out_dir,
