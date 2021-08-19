@@ -1,8 +1,7 @@
 from threading import Thread
-from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
+from cv2 import VideoCapture, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT
 from queue import Queue
 from time import time, sleep
-# from tensorflow import expand_dims, compat, queue, float32, int32, uint8
 from tensorflow.keras.models import load_model
 from json import load
 from pandas import DataFrame, to_datetime
@@ -11,7 +10,6 @@ import os
 import argparse
 from datetime import timedelta
 from TF_queue import TF_Queue
-# from opencv_read_and_queue import OCV_stream
 
 
 def run_detection_multi_thread(video_file, model_dir, save_dir=None, save=True):
@@ -111,12 +109,15 @@ class OCV_stream:
         # Creating Queue
         self.Q = Queue(maxsize=queueSize)
 
-        # get the image size from the
+        # get the image size from the config file
         with open(model_dir + r'/config.json') as f:
-            try:
-                self.img_size = tuple(load(f)['image_size']['py/tuple'])
-            except:
-                self.img_size = tuple(load(f)['image size'])
+            config = load(f)
+            if 'image size' in config.keys():
+                # new models have a config parameter "image size"
+                self.img_size = tuple(config['image size'])
+            elif 'image_size' in config.keys():
+                # the older models have the underscore in the parameter name
+                self.img_size = tuple(config['image_size']['py/tuple'])
 
     def start(self):
         # Start thread to read frames

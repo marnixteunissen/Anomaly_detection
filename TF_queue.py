@@ -1,16 +1,8 @@
 from threading import Thread
-from cv2 import VideoCapture, CAP_PROP_FPS, resize, CAP_PROP_FRAME_COUNT
-from queue import Queue
-from time import time, sleep
-from tensorflow import expand_dims, compat, queue, float32, int32, uint8, zeros
-from tensorflow.keras.models import load_model
+from cv2 import resize
+from time import sleep
+from tensorflow import expand_dims, queue, int32, uint8, zeros
 from json import load
-from pandas import DataFrame, to_datetime
-from math import floor
-import os
-import argparse
-from datetime import timedelta
-
 
 class TF_Queue:
     def __init__(self, ocv_queue, model_dir, queuesize=16):
@@ -19,8 +11,15 @@ class TF_Queue:
         self.ocv_Q = ocv_queue
         # Creating Queue
         with open(model_dir + r'/config.json') as f:
+            config = load(f)
+            if 'image size' in config.keys():
+                # new models have a config parameter "image size"
+                self.img_size = tuple(config['image size'])
+            elif 'image_size' in config.keys():
+                # the older models have the underscore in the parameter name
+                self.img_size = tuple(config['image_size']['py/tuple'])
             # this size is in opencv format: tf standard tensor format: [H, W]
-            self.img_size = tuple(load(f)['image_size']['py/tuple'])
+            # self.img_size = tuple(load(f)['image_size']['py/tuple'])
         # here shape is according to tf standard tensor format: [n, H, W, C]
         self.tf_queue = queue.FIFOQueue(queuesize, [uint8, int32], shapes=[[1, self.img_size[0], self.img_size[1], 3], [1]])
 
