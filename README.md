@@ -7,7 +7,7 @@
 
 ## Installation
 
-####1. Download CUDA computation toolkit:
+#### 1. Download CUDA computation toolkit:
    
 download the files from https://developer.nvidia.com/cuda-downloads for the relevant system.
     
